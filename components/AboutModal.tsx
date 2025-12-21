@@ -73,7 +73,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                         <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mb-4">Developed By</p>
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-full">
                             <Code className="w-4 h-4 text-slate-500" />
-                            <span className="font-bold text-slate-700 dark:text-neutral-300">Mohammed Nihad KP</span>
+                            <span className="font-bold text-slate-700 dark:text-neutral-300">mohdnihadkp</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-4">
                             Version 2.5.0 (Beta)
