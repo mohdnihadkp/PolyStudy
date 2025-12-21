@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import DepartmentCard from './components/DepartmentCard';
 import ResourceList from './components/ResourceList';
@@ -1383,6 +1384,7 @@ export default function App() {
             </div>
         </div>
       </footer>
+      <Analytics />
     </div>
   );
 }
