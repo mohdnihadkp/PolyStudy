@@ -174,7 +174,7 @@ const DriveFolderModal: React.FC<DriveFolderModalProps> = ({ url, title, onClose
         </div>
 
         {/* Content */}
-        <div className="flex-1 bg-white dark:bg-[#1a1a1a] relative w-full h-full group">
+        <div className="flex-1 bg-white dark:bg-[#FFFFFF] relative w-full h-full group">
              
              {isLoading && (
                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white dark:bg-[#1a1a1a]">
