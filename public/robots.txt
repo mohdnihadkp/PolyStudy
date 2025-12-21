@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
 Sitemap: https://polystudy.vercel.app/sitemap.xml
+google-site-verification=HLBGsBAKjdyRz1WqQSsm42Q1voI_PvjK5pLto2uFk60
