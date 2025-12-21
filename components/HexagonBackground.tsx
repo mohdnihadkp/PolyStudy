@@ -16,8 +16,8 @@ const HexagonBackground = () => {
     let hexGrid: { x: number, y: number }[] = [];
     
     // Grid Configuration
-    const hexRadius = 25; // Size of hexagons
-    const hexGap = 2; // Gap between hexagons
+    const hexRadius = 50; // Size of hexagons
+    const hexGap = 4; // Gap between hexagons
     const hexWidth = Math.sqrt(3) * hexRadius;
     const hexHeight = 2 * hexRadius;
     const xDist = hexWidth + hexGap; 
@@ -94,15 +94,15 @@ const HexagonBackground = () => {
         // Light radius ~400px
         if (dist < 400) {
             if (dist < 60) {
-                fillStyle = '#ffffff'; // Core: White
+                fillStyle = '#212129'; // Core: White
             } else if (dist < 150) {
-                fillStyle = '#e11d48'; // Inner Ring: Red/Pink (Rose-600)
+                fillStyle = '#323949'; // Inner Ring: Red/Pink (Rose-600)
             } else if (dist < 250) {
-                fillStyle = '#7c3aed'; // Middle Ring: Purple (Violet-600)
+                fillStyle = '#3d3e51'; // Middle Ring: Purple (Violet-600)
             } else if (dist < 350) {
-                fillStyle = '#1e40af'; // Outer Ring: Blue (Blue-800)
+                fillStyle = '#40445a'; // Outer Ring: Blue (Blue-800)
             } else {
-                fillStyle = '#0f172a'; // Fade: Slate-900
+                fillStyle = '#4c5265'; // Fade: Slate-900
             }
         }
 
