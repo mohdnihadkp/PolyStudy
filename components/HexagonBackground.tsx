@@ -9,61 +9,117 @@ const HexagonBackground: React.FC = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
-  const sourceRef = useRef<AudioBufferSourceNode | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
+  
+  // Interaction Audio Refs
+  const lastSoundPos = useRef({ x: 0, y: 0 });
   
   const [isAudioActive, setIsAudioActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  // Clean up AudioContext on unmount only
+  useEffect(() => {
+    return () => {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
+
   // Audio Toggle Handler
   const toggleAudio = async () => {
     if (isAudioActive) {
       // Pause/Suspend
-      if (audioContextRef.current) {
-        await audioContextRef.current.suspend();
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        try {
+          await audioContextRef.current.suspend();
+        } catch (e) {
+          console.warn("Failed to suspend audio context", e);
+        }
+        setIsAudioActive(false);
+      } else {
+        // If it's already closed or null, just update state
         setIsAudioActive(false);
       }
     } else {
       setIsLoading(true);
       try {
-        if (!audioContextRef.current) {
+        if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
           // Initialize Audio Context
           const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
           const ctx = new AudioContext();
           const analyser = ctx.createAnalyser();
           analyser.fftSize = 256; // Use 256 for manageable data size (128 bins)
-          analyser.smoothingTimeConstant = 0.8;
+          analyser.smoothingTimeConstant = 0.85; // Smoother visuals for drone
 
-          const gainNode = ctx.createGain();
-          gainNode.gain.value = 0.4; // Lower volume slightly
+          // --- PROCEDURAL AUDIO GENERATION (No Network) ---
+          // Creates a dark, breathing sci-fi drone
+          
+          // Master Gain
+          const masterGain = ctx.createGain();
+          masterGain.gain.value = 0.3; // Overall volume
+          
+          // 1. Deep Bass Drone (Sawtooth)
+          const osc1 = ctx.createOscillator();
+          osc1.type = 'sawtooth';
+          osc1.frequency.value = 50; 
+          
+          // 2. Sub Bass (Sine) - Detuned for phasing
+          const osc2 = ctx.createOscillator();
+          osc2.type = 'sine';
+          osc2.frequency.value = 50.5; 
 
-          // Fetch Audio (Cyberpunk/Tech style track)
-          const response = await fetch('https://cdn.pixabay.com/audio/2022/03/24/audio_346bf89947.mp3'); 
-          if (!response.ok) throw new Error('Network response was not ok');
+          // 3. Texture (Triangle) - Octave up
+          const osc3 = ctx.createOscillator();
+          osc3.type = 'triangle';
+          osc3.frequency.value = 100;
+          const osc3Gain = ctx.createGain();
+          osc3Gain.gain.value = 0.15; // Lower volume for high texture
           
-          const arrayBuffer = await response.arrayBuffer();
-          const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+          // Filter: Lowpass to muffle the harsh sawtooth
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 200; // Start dark
+          filter.Q.value = 1;
+
+          // LFO: Modulates the filter frequency to make the sound "breathe"
+          const lfo = ctx.createOscillator();
+          lfo.type = 'sine';
+          lfo.frequency.value = 0.15; // Slow breath (approx 6.6 seconds)
           
-          const source = ctx.createBufferSource();
-          source.buffer = audioBuffer;
-          source.loop = true;
+          const lfoGain = ctx.createGain();
+          lfoGain.gain.value = 150; // Filter moves +/- 150Hz
           
-          // Connect Graph: Source -> Analyser -> Gain -> Destination
-          source.connect(analyser);
-          analyser.connect(gainNode);
-          gainNode.connect(ctx.destination);
-          
-          source.start(0);
+          // Connections
+          // LFO -> Filter Frequency
+          lfo.connect(lfoGain);
+          lfoGain.connect(filter.frequency);
+
+          // Oscillators -> Filter
+          osc1.connect(filter);
+          osc2.connect(filter);
+          osc3.connect(osc3Gain);
+          osc3Gain.connect(filter);
+
+          // Filter -> Analyser -> Master Gain -> Destination
+          filter.connect(analyser);
+          analyser.connect(masterGain);
+          masterGain.connect(ctx.destination);
+
+          // Start Oscillators
+          const now = ctx.currentTime;
+          osc1.start(now);
+          osc2.start(now);
+          osc3.start(now);
+          lfo.start(now);
 
           audioContextRef.current = ctx;
           analyserRef.current = analyser;
-          sourceRef.current = source;
-          gainNodeRef.current = gainNode;
           dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
-        } else {
+        } else if (audioContextRef.current.state === 'suspended') {
           await audioContextRef.current.resume();
         }
+        
         setIsAudioActive(true);
         setHasError(false);
       } catch (err) {
@@ -134,6 +190,50 @@ const HexagonBackground: React.FC = () => {
       ctx.closePath();
     };
 
+    // --- Sound Synthesis Helpers ---
+    const playInteractionSound = (type: 'hover' | 'click') => {
+        // Only play if audio is initialized and running
+        if (!audioContextRef.current || !analyserRef.current || audioContextRef.current.state !== 'running') return;
+
+        const actx = audioContextRef.current;
+        const now = actx.currentTime;
+
+        // Create oscillator and gain for envelope
+        const osc = actx.createOscillator();
+        const oscGain = actx.createGain();
+
+        osc.connect(oscGain);
+        // Connect to analyser so the sound visualizes on the grid
+        oscGain.connect(analyserRef.current); 
+
+        if (type === 'hover') {
+            // "Glassy Tick": High pitch sine wave, extremely short
+            osc.type = 'sine';
+            // Randomize pitch slightly for organic feel (800Hz - 1200Hz)
+            osc.frequency.setValueAtTime(800 + Math.random() * 400, now);
+            
+            // Envelope: Fast attack, fast decay
+            oscGain.gain.setValueAtTime(0, now);
+            oscGain.gain.linearRampToValueAtTime(0.05, now + 0.01); // Very quiet
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (type === 'click') {
+            // "Sonar Pulse": Triangle wave dropping in pitch
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+
+            // Envelope: Impactful but short
+            oscGain.gain.setValueAtTime(0.2, now); // Louder than hover
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+    };
+
     const animate = () => {
       const time = Date.now() * 0.001;
 
@@ -169,22 +269,19 @@ const HexagonBackground: React.FC = () => {
       targetRef.current.y += dy * 0.08;
 
       // 1. Clear Background with Dynamic Bass Pulse
-      // Base color is #020408. We lighten it slightly on bass hits.
       const bgLightness = 2 + (bass * 5); 
       ctx.fillStyle = `hsl(220, 30%, ${bgLightness}%)`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // 2. Draw Ambient Glow
-      // Radius expands with bass
       const glowRadius = 600 + (bass * 300);
       const gradient = ctx.createRadialGradient(
           targetRef.current.x, targetRef.current.y, 0,
           targetRef.current.x, targetRef.current.y, glowRadius
       );
       
-      // Dynamic Colors based on Mid/Treble
-      const coreHue = 25 + (mid * 50); // Orange -> Yellow/Green shift
-      const glowHue = 210 + (treble * 40); // Blue -> Purple shift
+      const coreHue = 25 + (mid * 50); 
+      const glowHue = 210 + (treble * 40); 
 
       gradient.addColorStop(0, `hsla(${coreHue}, 100%, 50%, 0.15)`); 
       gradient.addColorStop(0.3, `hsla(${glowHue}, 60%, 40%, 0.1)`); 
@@ -213,18 +310,15 @@ const HexagonBackground: React.FC = () => {
 
         // Active State
         if (intensity > 0.05) {
-            // Fill
-            const alpha = intensity * 0.4 + (mid * 0.2); // Boost fill on mids
+            const alpha = intensity * 0.4 + (mid * 0.2);
             ctx.fillStyle = `rgba(30, 62, 98, ${alpha})`;
             
-            // Core Hot Spot
             if (intensity > 0.8) {
                ctx.fillStyle = `hsla(${coreHue}, 100%, 60%, ${intensity * 0.4})`; 
             }
             ctx.fill();
 
-            // Stroke
-            ctx.lineWidth = 1 + (intensity * 2.5) + (treble * 3); // Thicken on treble
+            ctx.lineWidth = 1 + (intensity * 2.5) + (treble * 3);
             
             if (intensity > 0.9) {
                 ctx.strokeStyle = `rgba(255, 255, 255, ${intensity})`;
@@ -236,12 +330,10 @@ const HexagonBackground: React.FC = () => {
         } 
         // Idle State
         else {
-            // Twinkle speed affected by treble
             const twinkleSpeed = 1.5 + (treble * 5);
             const twinkle = Math.sin(time * twinkleSpeed + hex.phase) * 0.5 + 0.5;
             
             ctx.lineWidth = 1;
-            // Base grid visibility pulses with mid
             const gridOpacity = 0.03 + (mid * 0.05);
             ctx.strokeStyle = `rgba(255, 255, 255, ${gridOpacity})`;
 
@@ -257,11 +349,28 @@ const HexagonBackground: React.FC = () => {
       animationFrameId = requestAnimationFrame(animate);
     };
 
+    // Listeners
     window.addEventListener('resize', resize);
+    
     const handleMouseMove = (e: MouseEvent) => {
         mouseRef.current = { x: e.clientX, y: e.clientY };
+        
+        // --- Hover Sound Logic ---
+        // Calculate distance traveled since last sound
+        const dist = Math.hypot(e.clientX - lastSoundPos.current.x, e.clientY - lastSoundPos.current.y);
+        
+        // Trigger sound every ~40px (approx 1 hex diameter)
+        if (dist > 40) {
+            playInteractionSound('hover');
+            lastSoundPos.current = { x: e.clientX, y: e.clientY };
+        }
     };
     window.addEventListener('mousemove', handleMouseMove);
+
+    const handleMouseDown = () => {
+        playInteractionSound('click');
+    };
+    window.addEventListener('mousedown', handleMouseDown);
 
     resize();
     animate();
@@ -269,16 +378,11 @@ const HexagonBackground: React.FC = () => {
     return () => {
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousedown', handleMouseDown);
       cancelAnimationFrame(animationFrameId);
-      // Don't necessarily stop audio on unmount to prevent abrupt cuts if navigating (though this app is single page)
-      // But good practice:
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-          audioContextRef.current.close();
-      }
+      // NOTE: Removed audio context cleanup from here to prevent closure on state change.
     };
-  }, [isAudioActive]); // Re-bind if audio state changes significantly? Actually just runs once, audio state read from refs/state in closure. 
-  // Note: 'isAudioActive' inside animate will be stale if not careful. 
-  // However, we rely on checking 'analyserRef.current' which is mutable.
+  }, [isAudioActive]); 
 
   return (
     <>
@@ -320,7 +424,7 @@ const HexagonBackground: React.FC = () => {
             </button>
             {hasError && (
                 <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-red-500/80 text-white text-xs rounded-md whitespace-nowrap">
-                    Failed to load audio
+                    Failed to initialize audio
                 </div>
             )}
         </div>
