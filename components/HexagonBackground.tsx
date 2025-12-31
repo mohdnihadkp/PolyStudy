@@ -16,7 +16,7 @@ const HexagonBackground = () => {
     let hexGrid: { x: number, y: number }[] = [];
     
     // Grid Configuration
-    const hexRadius = 50; // Size of hexagons
+    const hexRadius = 40; // Size of hexagons
     const hexGap = 4; // Gap between hexagons
     const hexWidth = Math.sqrt(3) * hexRadius;
     const hexHeight = 2 * hexRadius;
