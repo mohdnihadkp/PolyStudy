@@ -2,10 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 
 // Palette Definitions
 const PALETTES = [
-  { name: 'Ember', coreHue: 25, glowHue: 215, bgHue: 220 },   // Orange/Blue
-  { name: 'Neon', coreHue: 150, glowHue: 320, bgHue: 280 },   // Green/Pink
-  { name: 'Aqua', coreHue: 190, glowHue: 200, bgHue: 200 },   // Cyan/Blue
-  { name: 'Royal', coreHue: 45, glowHue: 260, bgHue: 250 },   // Gold/Purple
+  { name: 'Ember', coreHue: 25, glowHue: 215, bgHue: 220, shape: 'circle' },   
+  { name: 'Neon', coreHue: 150, glowHue: 320, bgHue: 280, shape: 'square' },   
+  { name: 'Aqua', coreHue: 190, glowHue: 200, bgHue: 200, shape: 'triangle' },   
+  { name: 'Royal', coreHue: 45, glowHue: 260, bgHue: 250, shape: 'hexagon' },
+  { name: 'Crimson', coreHue: 350, glowHue: 10, bgHue: 240, shape: 'diamond' }, // New: Deep Red/Dark Blue
+  { name: 'Emerald', coreHue: 140, glowHue: 100, bgHue: 150, shape: 'pentagon' }, // New: Green/Forest
+  { name: 'Solar', coreHue: 50, glowHue: 30, bgHue: 40, shape: 'star' },     // New: Bright Yellow/Gold
 ];
 
 const HexagonBackground: React.FC = () => {
@@ -40,11 +43,19 @@ const HexagonBackground: React.FC = () => {
   }, []);
 
   const cyclePalette = () => {
+      // Haptic Feedback
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(15);
+      }
       setPaletteIndex(prev => (prev + 1) % PALETTES.length);
   };
 
   // Audio Toggle Handler
   const toggleAudio = async () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(10);
+    }
+    
     if (isAudioActive) {
       // Pause/Suspend
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
@@ -72,9 +83,6 @@ const HexagonBackground: React.FC = () => {
           const masterGain = ctx.createGain();
           masterGain.gain.value = 0.5; 
           
-          // Note: Background drone synthesis has been removed to silence the constant noise.
-          // The audio context remains for interactive sound effects (hover/click).
-
           // --- CONNECT ANALYSER TO OUTPUT ---
           // Interaction sounds will inject directly into analyser
           analyser.connect(masterGain);
@@ -110,7 +118,7 @@ const HexagonBackground: React.FC = () => {
     // Feature: Responsive Grid
     const isMobile = window.innerWidth < 768;
     const hexRadius = isMobile ? 28 : 22; 
-    const hexGap = 4; // Increased gap slightly for 3D bevel effect
+    const hexGap = 4; 
     const hexWidth = Math.sqrt(3) * hexRadius;
     const hexHeight = 2 * hexRadius;
     const xDist = hexWidth + hexGap; 
@@ -149,51 +157,97 @@ const HexagonBackground: React.FC = () => {
       initGrid();
     };
 
-    // Feature: 3D Hexagon Drawing
-    const drawHex = (x: number, y: number, r: number, color: string, rotation: number = 0, brightness: number = 0) => {
+    // Feature: Sophisticated 3D Lighting (Simplified Blinn-Phong approach for 2D Canvas)
+    const drawHex3D = (
+        x: number, 
+        y: number, 
+        r: number, 
+        hue: number,
+        saturation: number,
+        lightness: number,
+        rotation: number = 0, 
+        intensity: number = 0
+    ) => {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotation);
+
+      // Light source vector (simulated based on mouse position relative to hex)
+      // Normalize vector from hex to mouse
+      let lx = targetRef.current.x - x;
+      let ly = targetRef.current.y - y;
+      const lDist = Math.hypot(lx, ly) || 1;
+      lx /= lDist;
+      ly /= lDist;
+
+      const angleStep = Math.PI / 3; // 60 degrees
+
+      // 1. Draw Bevels (The slanted sides)
+      // We draw 6 trapezoids. The brightness depends on the dot product of the side normal and light vector.
+      const innerR = r * 0.8; // Inner face size
       
+      for (let i = 0; i < 6; i++) {
+          const angleStart = (Math.PI / 180) * 30 + i * angleStep;
+          const angleEnd = angleStart + angleStep;
+          
+          // Calculate Normal of this edge (approximate direction outwards)
+          const midAngle = angleStart + angleStep / 2;
+          const nx = Math.cos(midAngle);
+          const ny = Math.sin(midAngle);
+          
+          // Dot product for diffuse lighting on bevel
+          // Light is coming from (lx, ly). Normal is (nx, ny).
+          // We want how much they align. 
+          const dot = lx * nx + ly * ny; 
+          
+          // Map dot (-1 to 1) to lightness modifier
+          // A side facing the light (dot=1) should be brighter. Facing away (dot=-1) darker.
+          const bevelLightness = lightness + (dot * 20); 
+
+          ctx.beginPath();
+          ctx.moveTo(r * Math.cos(angleStart), r * Math.sin(angleStart));
+          ctx.lineTo(r * Math.cos(angleEnd), r * Math.sin(angleEnd));
+          ctx.lineTo(innerR * Math.cos(angleEnd), innerR * Math.sin(angleEnd));
+          ctx.lineTo(innerR * Math.cos(angleStart), innerR * Math.sin(angleStart));
+          ctx.closePath();
+          
+          ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${Math.max(0, Math.min(100, bevelLightness))}%)`;
+          ctx.fill();
+      }
+
+      // 2. Draw Top Face
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 180) * (30 + 60 * i);
-        ctx.lineTo(r * Math.cos(angle), r * Math.sin(angle));
+        const angle = (Math.PI / 180) * 30 + i * angleStep;
+        ctx.lineTo(innerR * Math.cos(angle), innerR * Math.sin(angle));
       }
       ctx.closePath();
 
-      // Create subtle 3D gradient fill
-      if (brightness > 0.1) {
-          const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
-          grad.addColorStop(0, adjustColor(color, 40)); // Highlight center
-          grad.addColorStop(0.8, color);
-          grad.addColorStop(1, adjustColor(color, -20)); // Darker edge
+      // Specular Highlight approximation on Top Face
+      // If the mouse is close (high intensity), the top face gets a "shine" gradient
+      if (intensity > 0.5) {
+          // Gradient moves with light source
+          const grad = ctx.createRadialGradient(
+              -lx * innerR * 0.5, -ly * innerR * 0.5, 0,
+              0, 0, innerR
+          );
+          // Highlight
+          grad.addColorStop(0, `hsla(${hue}, ${Math.max(0, saturation - 30)}%, ${Math.min(100, lightness + 40)}%, 0.9)`);
+          // Base color
+          grad.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`);
           ctx.fillStyle = grad;
       } else {
-          ctx.fillStyle = color;
+          ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
       }
+      
       ctx.fill();
 
-      // Bevel / Stroke
-      ctx.lineWidth = Math.max(1, brightness * 3);
-      ctx.strokeStyle = `rgba(0,0,0,0.5)`;
-      ctx.stroke();
-
-      // Top highlight for 3D bevel feel
-      ctx.beginPath();
-      ctx.moveTo(r * Math.cos(Math.PI/6), r * Math.sin(Math.PI/6));
-      ctx.lineTo(r * Math.cos(Math.PI*1.5), r * Math.sin(Math.PI*1.5)); // Top point
-      ctx.lineTo(r * Math.cos(Math.PI*5/6), r * Math.sin(Math.PI*5/6));
-      ctx.strokeStyle = `rgba(255,255,255, ${0.1 + brightness * 0.4})`;
+      // 3. Edge Highlight (Stroke) for definition
       ctx.lineWidth = 1;
+      ctx.strokeStyle = `hsla(${hue}, ${saturation}%, ${Math.max(0, lightness - 20)}%, 0.3)`;
       ctx.stroke();
 
       ctx.restore();
-    };
-
-    // Helper to lighten/darken hex color (basic version)
-    const adjustColor = (color: string, amount: number) => {
-        return color; // Simplification: actual hex math is complex, using opacity overlay instead in main loop usually
     };
 
     // --- Sound Synthesis Helpers ---
@@ -259,8 +313,6 @@ const HexagonBackground: React.FC = () => {
       }
 
       // Feature: Audio-Reactive Breathing
-      // If audio is active, breathing speed matches bass energy. 
-      // With no drone, bass/mid are 0 when idle, resulting in a gentle default breath.
       const breathSpeed = 1.5 + (bass * 8); 
       const breathIntensity = 0.5 + (mid * 0.5);
       const globalBreath = (Math.sin(time * breathSpeed) * 0.5 + 0.5) * breathIntensity; 
@@ -350,9 +402,9 @@ const HexagonBackground: React.FC = () => {
             const hue = coreHue + (mid * 60);
             const sat = 50 + (totalIntensity * 50);
             const lit = 20 + (totalIntensity * 40) + (rippleBoost * 20);
-            const color = `hsla(${hue}, ${sat}%, ${lit}%, ${0.2 + totalIntensity * 0.8})`;
 
-            drawHex(drawX, drawY, dynamicRadius, color, rotation, totalIntensity);
+            // Use new 3D Draw function
+            drawHex3D(drawX, drawY, dynamicRadius, hue, sat, lit, rotation, totalIntensity);
         } else {
             // Idle State
             const twinkleSpeed = 1.5 + (treble * 5);
@@ -401,6 +453,11 @@ const HexagonBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove);
 
     const handleMouseDown = (e: MouseEvent) => {
+        // Haptic Feedback
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(10);
+        }
+
         playInteractionSound('click');
         // Register ripple
         ripplesRef.current.push({
@@ -422,6 +479,20 @@ const HexagonBackground: React.FC = () => {
     };
   }, [isAudioActive, paletteIndex]);
 
+  // Helper for Shape rendering in button
+  const renderShapeIcon = (shape: string) => {
+      switch(shape) {
+          case 'circle': return <circle cx="12" cy="12" r="9" />;
+          case 'square': return <rect x="4" y="4" width="16" height="16" rx="2" />;
+          case 'triangle': return <path d="M12 3 L22 20 L2 20 Z" />;
+          case 'hexagon': return <path d="M12 2 L21 7 L21 17 L12 22 L3 17 L3 7 Z" />;
+          case 'diamond': return <path d="M12 2 L22 12 L12 22 L2 12 Z" />;
+          case 'pentagon': return <path d="M12 2 L22 9 L18 21 L6 21 L2 9 Z" />;
+          case 'star': return <path d="M12 2 L15 9 L22 9 L17 14 L19 21 L12 17 L5 21 L7 14 L2 9 L9 9 Z" />;
+          default: return <circle cx="12" cy="12" r="9" />;
+      }
+  };
+
   return (
     <>
         <canvas 
@@ -429,15 +500,24 @@ const HexagonBackground: React.FC = () => {
         className="fixed inset-0 z-[-1] bg-[#020408]"
         />
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
-            {/* Palette Switcher */}
+            {/* Palette Switcher - Shape Shifting Button */}
             <button
                 onClick={cyclePalette}
-                className="flex items-center justify-center h-12 w-12 rounded-full backdrop-blur-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 shadow-lg text-gray-300"
-                title={`Theme: ${activePalette.name}`}
+                className="group flex items-center justify-center h-14 w-14 rounded-full backdrop-blur-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/30 hover:scale-110 active:scale-95 transition-all duration-300 shadow-lg text-gray-200"
+                title={`Theme: ${activePalette.name} (Click to change shape & color)`}
+                aria-label="Change Color Theme"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                   <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path>
-                   <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"></path>
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-6 w-6 transition-all duration-500 ease-in-out group-hover:stroke-hexCore group-hover:fill-hexCore/20" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                >
+                   {renderShapeIcon(activePalette.shape || 'circle')}
                 </svg>
             </button>
 
@@ -445,7 +525,7 @@ const HexagonBackground: React.FC = () => {
             <button
                 onClick={toggleAudio}
                 disabled={isLoading}
-                className={`flex items-center gap-3 px-5 py-3 rounded-full backdrop-blur-md border transition-all duration-300 shadow-lg ${
+                className={`flex items-center gap-3 px-5 py-4 rounded-full backdrop-blur-md border transition-all duration-300 shadow-lg active:scale-95 ${
                     isAudioActive 
                     ? 'bg-hexCore/20 border-hexCore text-white hover:bg-hexCore/30 shadow-hexCore/20' 
                     : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20'
@@ -462,14 +542,14 @@ const HexagonBackground: React.FC = () => {
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-hexCore opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-hexCore"></span>
                         </span>
-                        <span className="font-semibold text-sm">Sound FX On</span>
+                        <span className="font-semibold text-sm">FX On</span>
                     </>
                 ) : (
                     <>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                         </svg>
-                        <span className="font-semibold text-sm">Enable Sound FX</span>
+                        <span className="font-semibold text-sm">Enable FX</span>
                     </>
                 )}
             </button>
