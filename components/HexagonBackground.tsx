@@ -94,13 +94,13 @@ const HexagonBackground = () => {
         // Light radius ~400px
         if (dist < 400) {
             if (dist < 60) {
-                fillStyle = '#1B3C53'; // Core: White
+                fillStyle = '#FF6500'; // Core: White
             } else if (dist < 150) {
-                fillStyle = '#234C6A'; // Inner Ring: Red/Pink (Rose-600)
+                fillStyle = '#1E3E62'; // Inner Ring: Red/Pink (Rose-600)
             } else if (dist < 250) {
                 fillStyle = '#456882'; // Middle Ring: Purple (Violet-600)
             } else if (dist < 350) {
-                fillStyle = '#D2C1B6'; // Outer Ring: Blue (Blue-800)
+                fillStyle = '#0B192C'; // Outer Ring: Blue (Blue-800)
             } else {
                 fillStyle = '#FFFFFF'; // Fade: Slate-900
             }
