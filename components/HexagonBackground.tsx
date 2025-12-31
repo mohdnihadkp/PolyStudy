@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 
 const HexagonBackground = () => {
@@ -102,7 +101,7 @@ const HexagonBackground = () => {
             } else if (dist < 350) {
                 fillStyle = '#0B192C'; // Outer Ring: Blue (Blue-800)
             } else {
-                fillStyle = '#FFFFFF'; // Fade: Slate-900
+                fillStyle = '#A9A9A9'; // Fade: Slate-900
             }
         }
 
