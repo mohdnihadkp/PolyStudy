@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-const HexagonBackground = () => {
+const HexagonBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
   const targetRef = useRef({ x: 0, y: 0 });
@@ -93,15 +93,15 @@ const HexagonBackground = () => {
         // Light radius ~400px
         if (dist < 400) {
             if (dist < 60) {
-                fillStyle = '#FF6500'; // Core: White
+                fillStyle = '#FF6500'; // Core: Orange
             } else if (dist < 150) {
-                fillStyle = '#1E3E62'; // Inner Ring: Red/Pink (Rose-600)
+                fillStyle = '#1E3E62'; // Inner Ring: Deep Blue
             } else if (dist < 250) {
-                fillStyle = '#456882'; // Middle Ring: Purple (Violet-600)
+                fillStyle = '#456882'; // Middle Ring: Slate Blue
             } else if (dist < 350) {
-                fillStyle = '#0B192C'; // Outer Ring: Blue (Blue-800)
+                fillStyle = '#0B192C'; // Outer Ring: Dark Blue
             } else {
-                fillStyle = '#A9A9A9'; // Fade: Slate-900
+                fillStyle = '#1a1a1a'; // Fade
             }
         }
 
@@ -119,9 +119,10 @@ const HexagonBackground = () => {
 
     // Event Listeners
     window.addEventListener('resize', resize);
-    window.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
         mouseRef.current = { x: e.clientX, y: e.clientY };
-    });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
 
     // Start
     resize();
@@ -129,6 +130,7 @@ const HexagonBackground = () => {
 
     return () => {
       window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
