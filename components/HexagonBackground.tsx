@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // --- Types & Constants ---
 
@@ -31,15 +31,14 @@ const HexagonBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // --- State ---
-  // Core Visual Parameters
-  const [controls, setControls] = useState({
+  // Core Visual Parameters - Static defaults
+  const controls = {
     radius: 22,      // Grid cell size
     speed: 1.0,      // Animation speed multiplier
     intensity: 1.0,  // Glow/Color intensity multiplier
     shape: 'hexagon' as ShapeType,
-  });
+  };
 
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [paletteIndex, setPaletteIndex] = useState(0);
   const [isAudioActive, setIsAudioActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -482,7 +481,7 @@ const HexagonBackground: React.FC = () => {
       window.removeEventListener('mousedown', handleMouseDown);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [controls, isAudioActive, paletteIndex]); // Re-run if controls change (e.g. shape)
+  }, [isAudioActive, paletteIndex]);
 
   // --- Render Helpers ---
 
@@ -519,64 +518,7 @@ const HexagonBackground: React.FC = () => {
       {/* --- Main Controls (Bottom Right) --- */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3" ref={containerRef}>
         
-        {/* Settings Panel Popout */}
-        <div className={`mb-2 p-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl transition-all duration-300 origin-bottom-right ${isPanelOpen ? 'scale-100 opacity-100' : 'scale-75 opacity-0 pointer-events-none absolute'}`}>
-            <h3 className="text-white text-sm font-bold mb-4 uppercase tracking-wider text-hexCore">Visual Settings</h3>
-            
-            <div className="space-y-4 w-56">
-                {/* Shape Selector */}
-                <div className="space-y-1">
-                    <label className="text-xs text-gray-400">Grid Shape</label>
-                    <div className="flex bg-white/5 rounded-lg p-1 border border-white/5">
-                        {['hexagon', 'square', 'triangle'].map((s) => (
-                            <button
-                                key={s}
-                                onClick={() => setControls(c => ({...c, shape: s as ShapeType}))}
-                                className={`flex-1 py-1 rounded-md text-xs font-medium capitalize transition-colors ${controls.shape === s ? 'bg-hexCore text-white' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                {s.slice(0,3)}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Sliders */}
-                {[
-                    { label: 'Grid Size', key: 'radius', min: 10, max: 50, step: 1 },
-                    { label: 'Anim Speed', key: 'speed', min: 0.1, max: 3, step: 0.1 },
-                    { label: 'Glow Intensity', key: 'intensity', min: 0.2, max: 2, step: 0.1 },
-                ].map(slider => (
-                    <div key={slider.key} className="space-y-1">
-                        <div className="flex justify-between text-xs text-gray-400">
-                            <span>{slider.label}</span>
-                            <span>{controls[slider.key as keyof typeof controls]}</span>
-                        </div>
-                        <input 
-                            type="range" 
-                            min={slider.min} max={slider.max} step={slider.step}
-                            value={controls[slider.key as keyof typeof controls] as number}
-                            onChange={(e) => setControls(c => ({...c, [slider.key]: parseFloat(e.target.value)}))}
-                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-hexCore"
-                        />
-                    </div>
-                ))}
-            </div>
-        </div>
-
         <div className="flex items-center gap-3">
-            {/* Settings Toggle */}
-            <ControlBtn
-                active={isPanelOpen}
-                onClick={() => setIsPanelOpen(!isPanelOpen)}
-                label="Customize Visuals"
-                icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                }
-            />
-
             {/* Palette Switcher */}
             <ControlBtn
                 onClick={cyclePalette}
