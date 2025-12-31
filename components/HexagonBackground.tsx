@@ -12,21 +12,22 @@ const HexagonBackground: React.FC = () => {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let hexGrid: { x: number, y: number }[] = [];
+    let hexGrid: { x: number; y: number; phase: number }[] = [];
     
     // Grid Configuration
-    const hexRadius = 30; // Size of hexagons
-    const hexGap = 4; // Gap between hexagons
+    const hexRadius = 22; // Slightly smaller for higher density/resolution
+    const hexGap = 2; 
     const hexWidth = Math.sqrt(3) * hexRadius;
     const hexHeight = 2 * hexRadius;
     const xDist = hexWidth + hexGap; 
     const yDist = (1.5 * hexRadius) + hexGap; 
 
-    // Initialize Grid
+    // Initialize Grid with random phases for twinkling
     const initGrid = () => {
       hexGrid = [];
-      const cols = Math.ceil(window.innerWidth / xDist) + 2;
-      const rows = Math.ceil(window.innerHeight / yDist) + 2;
+      // Add extra padding to ensure coverage
+      const cols = Math.ceil(window.innerWidth / xDist) + 4;
+      const rows = Math.ceil(window.innerHeight / yDist) + 4;
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -38,11 +39,15 @@ const HexagonBackground: React.FC = () => {
             x += xDist / 2;
           }
           
-          // Center the grid coordinates relative to drawing area
-          x -= xDist;
-          y -= yDist;
+          // Center adjustment
+          x -= xDist * 2;
+          y -= yDist * 2;
 
-          hexGrid.push({ x, y });
+          hexGrid.push({ 
+            x, 
+            y, 
+            phase: Math.random() * Math.PI * 2 // Random starting point for oscillation
+          });
         }
       }
     };
@@ -51,7 +56,7 @@ const HexagonBackground: React.FC = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       
-      // Initialize mouse/target to center on load if not moved
+      // Reset mouse to center on first load/resize if untouched
       if (mouseRef.current.x === 0 && mouseRef.current.y === 0) {
           mouseRef.current = { x: canvas.width / 2, y: canvas.height / 2 };
           targetRef.current = { x: canvas.width / 2, y: canvas.height / 2 };
@@ -60,57 +65,104 @@ const HexagonBackground: React.FC = () => {
       initGrid();
     };
 
-    // Draw single hexagon path
-    const drawHex = (x: number, y: number) => {
+    const drawHexPath = (x: number, y: number, r: number) => {
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
         const angle = (Math.PI / 180) * (30 + 60 * i);
-        ctx.lineTo(x + hexRadius * Math.cos(angle), y + hexRadius * Math.sin(angle));
+        ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
       }
       ctx.closePath();
     };
 
     const animate = () => {
-      // Smooth interpolation for flashlight movement
-      targetRef.current.x += (mouseRef.current.x - targetRef.current.x) * 0.1;
-      targetRef.current.y += (mouseRef.current.y - targetRef.current.y) * 0.1;
+      const time = Date.now() * 0.001; // Time for idle animations
 
-      // Clear Canvas
-      ctx.fillStyle = '#000000';
+      // Smooth "Spring" interpolation for light source
+      const dx = mouseRef.current.x - targetRef.current.x;
+      const dy = mouseRef.current.y - targetRef.current.y;
+      targetRef.current.x += dx * 0.08;
+      targetRef.current.y += dy * 0.08;
+
+      // 1. Clear Background
+      ctx.fillStyle = '#020408'; // Very dark blue-black
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Render Grid
+      // 2. Draw Ambient Glow (Light source under the floor)
+      const gradient = ctx.createRadialGradient(
+          targetRef.current.x, targetRef.current.y, 0,
+          targetRef.current.x, targetRef.current.y, 600
+      );
+      // Core highlight
+      gradient.addColorStop(0, 'rgba(255, 101, 0, 0.12)'); 
+      // Secondary bloom
+      gradient.addColorStop(0.3, 'rgba(30, 62, 98, 0.08)'); 
+      // Fade out
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.save();
+      ctx.fillStyle = gradient;
+      // 'screen' or 'lighter' blend mode makes the glow look additive
+      ctx.globalCompositeOperation = 'lighter'; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      // 3. Render Hexagons
       hexGrid.forEach(hex => {
-        const dx = hex.x - targetRef.current.x;
-        const dy = hex.y - targetRef.current.y;
-        const dist = Math.hypot(dx, dy); // Efficient distance calc
+        const distX = hex.x - targetRef.current.x;
+        const distY = hex.y - targetRef.current.y;
+        const dist = Math.hypot(distX, distY);
         
-        drawHex(hex.x, hex.y);
+        // Calculate Light Intensity (0.0 to 1.0)
+        // Using inverse square-like falloff for realism
+        const lightRadius = 500;
+        const rawIntensity = Math.max(0, 1 - dist / lightRadius);
+        const intensity = Math.pow(rawIntensity, 2); // Squared falloff looks more natural
 
-        // --- Lighting Logic ---
-        let fillStyle = '#111111'; // Default dark hex color
+        drawHexPath(hex.x, hex.y, hexRadius);
 
-        // Light radius ~400px
-        if (dist < 400) {
-            if (dist < 60) {
-                fillStyle = '#FF6500'; // Core: Orange
-            } else if (dist < 150) {
-                fillStyle = '#1E3E62'; // Inner Ring: Deep Blue
-            } else if (dist < 250) {
-                fillStyle = '#456882'; // Middle Ring: Slate Blue
-            } else if (dist < 350) {
-                fillStyle = '#0B192C'; // Outer Ring: Dark Blue
+        // --- Active State (Lit by mouse) ---
+        if (intensity > 0.05) {
+            // Fill: Subtle glass-like tint
+            ctx.fillStyle = `rgba(30, 62, 98, ${intensity * 0.4})`;
+            // Core Fill: Hot center
+            if (intensity > 0.8) {
+               ctx.fillStyle = `rgba(255, 101, 0, ${intensity * 0.25})`; 
+            }
+            ctx.fill();
+
+            // Stroke: Dynamic Color & Width
+            ctx.lineWidth = 1 + (intensity * 2.5);
+            
+            // Color Interpolation:
+            // > 0.9 : White hot
+            // > 0.6 : Orange
+            // > 0.2 : Blue
+            if (intensity > 0.9) {
+                ctx.strokeStyle = `rgba(255, 255, 255, ${intensity})`;
+            } else if (intensity > 0.6) {
+                // Smoothly blend Orange to White
+                ctx.strokeStyle = `rgba(255, 140, 50, ${intensity})`;
             } else {
-                fillStyle = '#1a1a1a'; // Fade
+                // Smoothly blend Blue to Orange
+                ctx.strokeStyle = `rgba(70, 130, 180, ${0.2 + intensity * 0.8})`;
+            }
+        } 
+        // --- Idle State (Dormant) ---
+        else {
+            // Twinkle Effect: Sine wave based on time + random phase
+            const twinkle = Math.sin(time * 1.5 + hex.phase) * 0.5 + 0.5;
+            
+            // Only draw faint stroke usually
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)'; // Barely visible metallic grid
+
+            // Random sparkles
+            if (twinkle > 0.95) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${(twinkle - 0.95) * 2})`; // Flash white
+                ctx.fill();
             }
         }
 
-        ctx.fillStyle = fillStyle;
-        ctx.fill();
-
-        // Stroke creates the "gap" effect (drawing black lines between hexes)
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
         ctx.stroke();
       });
 
@@ -124,7 +176,7 @@ const HexagonBackground: React.FC = () => {
     };
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Start
+    // Initial Start
     resize();
     animate();
 
@@ -138,8 +190,7 @@ const HexagonBackground: React.FC = () => {
   return (
     <canvas 
       ref={canvasRef} 
-      className="fixed inset-0 z-[-1] bg-black pointer-events-none"
-      style={{ touchAction: 'none' }}
+      className="fixed inset-0 z-[-1] bg-[#020408] pointer-events-none"
     />
   );
 };
