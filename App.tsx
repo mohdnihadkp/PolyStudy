@@ -90,20 +90,20 @@ export default function App() {
 
   // --- DYNAMIC SEO METADATA UPDATE (OPTIMIZED FOR KERALA) ---
   useEffect(() => {
-    let title = "Polystudy | Kerala Polytechnic Study Materials, Question Papers & Syllabus";
-    let desc = "Download Kerala Polytechnic previous year question papers, SITTTR syllabus, solved answers, and latest diploma news on Polystudy. The best resource for Kerala diploma students.";
+    let title = "PolyStudy - Kerala Polytechnic Study Materials & Syllabus";
+    let desc = "Download Kerala Polytechnic previous year question papers, SITTTR syllabus, solved answers, and latest diploma news on PolyStudy. The best resource for Kerala diploma students.";
 
     if (isBookmarksView) {
-      title = "My Bookmarks | Polystudy Kerala";
-      desc = "Your saved subjects and video lectures on Polystudy.";
+      title = "My Bookmarks - PolyStudy";
+      desc = "Your saved subjects and video lectures on PolyStudy.";
     } else if (selectedSubject) {
-      title = `${selectedSubject.title} Notes & Papers | ${selectedDept?.name} - Kerala Polytechnic`;
+      title = `${selectedSubject.title} - ${selectedDept?.name} | PolyStudy`;
       desc = `Download ${selectedSubject.title} study materials, question papers, and video lectures for ${selectedSemester} ${selectedDept?.name} Diploma (SITTTR/DTE Kerala).`;
     } else if (selectedSemester) {
-      title = `${selectedSemester} Syllabus & Notes | ${selectedDept?.name} - Polystudy`;
+      title = `${selectedSemester} - ${selectedDept?.name} | PolyStudy`;
       desc = `Kerala Polytechnic ${selectedSemester} study resources for ${selectedDept?.name}. SITTTR Syllabus, Lab Manuals, and Workshop guides.`;
     } else if (selectedDept) {
-      title = `${selectedDept.name} Diploma Materials | Kerala Polytechnic Resources`;
+      title = `${selectedDept.name} Materials - PolyStudy`;
       desc = `Free study materials for Kerala Polytechnic ${selectedDept.name}. Curriculum, notes, and video classes for S1 to S6 semesters.`;
     }
 
@@ -859,7 +859,7 @@ export default function App() {
               
               {/* Primary SEO Heading - Keyword Rich */}
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-4 tracking-tight leading-tight">
-                Kerala Polytechnic Study Materials & Question Papers - Polystudy
+                Kerala Polytechnic Study Materials & Question Papers - PolyStudy
               </h1>
               <p className="text-lg text-slate-600 dark:text-neutral-400 font-medium max-w-xl mx-auto leading-relaxed">
                 Premium SITTTR/DTE Kerala diploma resources, solved papers, and AI tutoring for academic excellence.
