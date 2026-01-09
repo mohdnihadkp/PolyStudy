@@ -19,6 +19,7 @@ import SubjectProgress from './components/SubjectProgress';
 import HexagonBackground from './components/HexagonBackground'; 
 import NoticesModal from './components/NoticesModal';
 import AboutModal from './components/AboutModal'; 
+import SplashScreen from './components/SplashScreen';
 import { DEPARTMENTS, SEMESTERS, APP_NOTICES } from './constants';
 import { Department, Semester, Subject, ResourceCategory, Resource, VideoLecture, BookmarkItem } from './types';
 import { Book, Video, Bot, GraduationCap, ArrowLeft, Layers, Calendar, FolderOpen, ChevronRight, FileText, ArrowRight, Zap, Hexagon, ExternalLink, CheckCircle2, Bookmark, AlertTriangle, MessageSquare, Sparkles, Github, Instagram, Facebook, Twitter, Linkedin, Phone, Bell } from 'lucide-react';
@@ -39,6 +40,7 @@ declare global {
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
   // App State
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
@@ -87,6 +89,15 @@ export default function App() {
       { text: "The way to succeed is to double your failure rate.", author: "Thomas J. Watson" },
       { text: "Quality means doing it right when no one is looking.", author: "Henry Ford" }
   ];
+
+  // --- LOADING SCREEN EFFECT ---
+  useEffect(() => {
+    // Force minimum 2.5s loading time for the splash screen
+    const timer = setTimeout(() => {
+      setIsAppLoading(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // --- DYNAMIC SEO METADATA UPDATE (OPTIMIZED FOR KERALA) ---
   useEffect(() => {
@@ -409,42 +420,44 @@ export default function App() {
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
-  // Updated Search Logic with Multi-Token Scoring
+  // Updated Search Logic with Multi-Token Scoring and Semester Boosting
   useEffect(() => {
     if (!debouncedSearchQuery.trim()) {
       setSearchResults([]);
       return;
     }
 
-    const query = debouncedSearchQuery.toLowerCase();
+    const query = debouncedSearchQuery.toLowerCase().trim();
     const queryTokens = query.split(/\s+/).filter(t => t.length > 0);
     const results: SearchResultItem[] = [];
 
-    // Scoring weights based on match type
+    // Scoring weights
     const W = {
-        EXACT: 10,
-        ALL_TOKENS: 5,
-        PARTIAL_TOKEN: 1,
+        EXACT: 50,
+        ALL_TOKENS: 20,
+        PARTIAL_TOKEN: 2,
         
         // Item priorities
         DEPT: 100,
         SUBJECT: 80,
-        VIDEO: 50,
-        DESC: 10,
+        VIDEO: 60,
+        DESC: 5,
     };
 
     const getScore = (text: string | undefined, baseWeight: number) => {
         if (!text) return 0;
         const lowerText = text.toLowerCase();
         
-        // 1. Exact Match
+        // 1. Exact Match (Highest Priority)
         if (lowerText === query) return baseWeight * W.EXACT;
+        // 1b. Starts with match (Very High)
+        if (lowerText.startsWith(query)) return baseWeight * (W.EXACT / 2);
         
         // 2. All tokens present
         const allTokensPresent = queryTokens.every(token => lowerText.includes(token));
         if (allTokensPresent) return baseWeight * W.ALL_TOKENS;
 
-        // 3. Partial Token Match (count how many tokens match)
+        // 3. Partial Token Match
         let matches = 0;
         queryTokens.forEach(token => {
             if (lowerText.includes(token)) matches++;
@@ -454,6 +467,42 @@ export default function App() {
         
         return 0;
     };
+
+    // Semester Mapping for boosting
+    const semMap: Record<string, string[]> = {
+        '1': ['s1', 'sem 1', 'semester 1', '1st'],
+        '2': ['s2', 'sem 2', 'semester 2', '2nd'],
+        '3': ['s3', 'sem 3', 'semester 3', '3rd'],
+        '4': ['s4', 'sem 4', 'semester 4', '4th'],
+        '5': ['s5', 'sem 5', 'semester 5', '5th'],
+        '6': ['s6', 'sem 6', 'semester 6', '6th']
+    };
+
+    // Detect if search query contains semester info
+    let targetSemesterNum: string | null = null;
+    Object.entries(semMap).forEach(([num, keywords]) => {
+        if (keywords.some(k => query.includes(k))) {
+            targetSemesterNum = num;
+        }
+    });
+
+    // Detect Department context
+    let targetDeptId: string | null = null;
+    const deptKeywords: Record<string, string[]> = {
+        'ce': ['computer', 'cse', 'ct', 'cp'],
+        'che': ['hardware', 'che'],
+        'mech': ['mechanical', 'mech', 'me'],
+        'civil': ['civil', 'ce'],
+        'eee': ['electrical', 'eee'],
+        'ece': ['electronics', 'ece'],
+        'auto': ['automobile', 'auto'],
+        'bme': ['biomedical', 'bme']
+    };
+    Object.entries(deptKeywords).forEach(([id, keywords]) => {
+        if (keywords.some(k => query.includes(k))) {
+            targetDeptId = id;
+        }
+    });
 
     DEPARTMENTS.forEach(dept => {
       // Department Score
@@ -471,14 +520,26 @@ export default function App() {
       // Subject Score
       dept.subjects.forEach(sub => {
         const titleScore = getScore(sub.title, W.SUBJECT);
-        // Boost score if the query contains "sem" or "s3" and the subject matches that semester
-        let semesterBoost = 0;
-        if ((query.includes('s1') || query.includes('sem 1')) && sub.semester === 'Semester 1') semesterBoost = 20;
-        if ((query.includes('s2') || query.includes('sem 2')) && sub.semester === 'Semester 2') semesterBoost = 20;
-        if ((query.includes('s3') || query.includes('sem 3')) && sub.semester === '3rd Semester') semesterBoost = 20;
-        if ((query.includes('s4') || query.includes('sem 4')) && sub.semester === '4th Semester') semesterBoost = 20;
-        if ((query.includes('s5') || query.includes('sem 5')) && sub.semester === '5th Semester') semesterBoost = 20;
-        if ((query.includes('s6') || query.includes('sem 6')) && sub.semester.includes('6th Semester')) semesterBoost = 20;
+        
+        let contextBoost = 0;
+        // Boost if subject is in the targeted semester
+        if (targetSemesterNum && sub.semester.includes(targetSemesterNum)) {
+             contextBoost += 200; 
+        }
+        
+        // Boost if we are searching within this department context
+        if (targetDeptId && (dept.id === targetDeptId || dept.name.toLowerCase().includes(targetDeptId))) {
+             contextBoost += 100;
+        }
+
+        // If BOTH Dept and Sem match, massive boost (e.g. "Civil S3")
+        if (targetDeptId && targetSemesterNum) {
+            const isDeptMatch = dept.id === targetDeptId || dept.name.toLowerCase().includes(targetDeptId);
+            const isSemMatch = sub.semester.includes(targetSemesterNum);
+            if (isDeptMatch && isSemMatch) {
+                contextBoost += 500;
+            }
+        }
 
         if (titleScore > 0) {
              results.push({ 
@@ -486,7 +547,7 @@ export default function App() {
                 item: sub, 
                 dept, 
                 sem: sub.semester,
-                score: titleScore + semesterBoost
+                score: titleScore + contextBoost
             });
         }
       });
@@ -496,13 +557,21 @@ export default function App() {
         const titleScore = getScore(vid.title, W.VIDEO);
         const instrScore = getScore(vid.instructor, W.DESC);
         
+        let contextBoost = 0;
+        if (targetSemesterNum && vid.semester.includes(targetSemesterNum)) {
+             contextBoost += 200;
+        }
+        if (targetDeptId && (dept.id === targetDeptId)) {
+             contextBoost += 100;
+        }
+
         if (titleScore > 0 || instrScore > 0) {
           results.push({ 
             type: 'video', 
             item: vid, 
             dept, 
             sem: vid.semester,
-            score: Math.max(titleScore, instrScore)
+            score: Math.max(titleScore, instrScore) + contextBoost
           });
         }
       });
@@ -663,6 +732,10 @@ export default function App() {
   }, {} as Record<string, VideoLecture[]>);
 
   const subjectVideos = selectedSubject ? (videosBySubject[selectedSubject.id] || []) : [];
+
+  if (isAppLoading) {
+    return <SplashScreen />;
+  }
 
   return (
     <div className="relative min-h-screen flex flex-col font-sans">
@@ -857,7 +930,6 @@ export default function App() {
                  </div>
               </div>
               
-              {/* Primary SEO Heading - Keyword Rich */}
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-4 tracking-tight leading-tight">
                 Kerala Polytechnic Study Materials & Question Papers - PolyStudy
               </h1>
@@ -866,7 +938,6 @@ export default function App() {
               </p>
             </header>
 
-            {/* Semantic Section for Departments */}
             <section aria-label="Diploma Departments">
                 <div 
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 px-0 sm:px-4 relative z-10"
@@ -885,7 +956,6 @@ export default function App() {
                 </div>
             </section>
 
-            {/* News Aside Section - Semantic Update */}
             <aside className="mt-8 max-w-4xl mx-auto" aria-label="Latest Kerala Diploma News">
                 <div className="glass-panel p-6 rounded-2xl border border-sky-100 dark:border-white/5 bg-gradient-to-r from-sky-50 to-white dark:from-[#0a0a0a] dark:to-black">
                     <div className="flex items-center justify-between mb-4">
@@ -914,9 +984,8 @@ export default function App() {
                 </div>
             </aside>
 
-            {/* Rest of the Home Page (Features & Quote) */}
+            {/* Rest of the Home Page */}
             <div className="mt-16 w-full max-w-5xl mx-auto relative z-10 animate-fade-in-up delay-100">
-                {/* Section Header */}
                 <div className="flex items-center justify-center mb-6 space-x-2 opacity-80">
                     <div className="h-px w-12 bg-gradient-to-r from-transparent to-slate-400 dark:to-slate-500"></div>
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Power Tools</span>
@@ -924,7 +993,6 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 px-2">
-                    {/* Feature 1: Materials */}
                     <div className="group relative p-1 rounded-2xl bg-gradient-to-b from-white/20 to-transparent dark:from-white/10 dark:to-transparent transition-transform hover:-translate-y-1">
                         <div className="absolute inset-0 bg-sky-500/10 blur-xl rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         <div className="relative h-full glass-panel bg-white/60 dark:bg-black/40 p-5 rounded-xl flex items-center border border-white/40 dark:border-white/10 overflow-hidden">
@@ -942,7 +1010,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* Feature 2: Videos */}
                     <div className="group relative p-1 rounded-2xl bg-gradient-to-b from-white/20 to-transparent dark:from-white/10 dark:to-transparent transition-transform hover:-translate-y-1">
                         <div className="absolute inset-0 bg-violet-500/10 blur-xl rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         <div className="relative h-full glass-panel bg-white/60 dark:bg-black/40 p-5 rounded-xl flex items-center border border-white/40 dark:border-white/10 overflow-hidden">
@@ -960,7 +1027,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* Feature 3: AI Tutor */}
                     <div className="group relative p-1 rounded-2xl bg-gradient-to-b from-white/20 to-transparent dark:from-white/10 dark:to-transparent transition-transform hover:-translate-y-1 sm:col-span-2 md:col-span-1">
                         <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         <div className="relative h-full glass-panel bg-white/60 dark:bg-black/40 p-5 rounded-xl flex items-center border border-white/40 dark:border-white/10 overflow-hidden">
@@ -979,7 +1045,6 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Creative Quote Section */}
                 <div className="mt-8 flex justify-center">
                     <div className="glass-panel py-2 px-6 rounded-full bg-white/30 dark:bg-white/5 border border-white/20 dark:border-white/10 flex items-center space-x-3 transition-all hover:bg-white/50 dark:hover:bg-white/10 hover:scale-105 cursor-default shadow-lg">
                         <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-current animate-pulse" />
@@ -1026,8 +1091,7 @@ export default function App() {
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{sem}</h3>
                         </div>
                         <div className="mt-4 flex justify-between items-center">
-                             {/* AI Assistant Button for this specific semester context could go here, but global fab is cleaner */}
-                             <div></div>
+                            <div></div>
                             <div className="p-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 group-hover:bg-sky-500 group-hover:text-white transition-all">
                                 <ArrowRight className="w-4 h-4" />
                             </div>
@@ -1053,7 +1117,6 @@ export default function App() {
                         </div>
                     </div>
                     
-                    {/* Department AI Assistant Button */}
                     <button 
                         onClick={() => openModal('deptAI', setIsDeptAIModalOpen)}
                         className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-xl shadow-lg hover:shadow-indigo-500/25 hover:scale-105 transition-all"
@@ -1063,7 +1126,6 @@ export default function App() {
                     </button>
                  </div>
 
-                 {/* Mobile Floating Action Button for AI */}
                  <button 
                     onClick={() => openModal('deptAI', setIsDeptAIModalOpen)}
                     className="md:hidden fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-full shadow-2xl hover:scale-110 transition-transform"
@@ -1072,6 +1134,7 @@ export default function App() {
                     <Bot className="w-6 h-6" />
                  </button>
 
+                 {/* ... Subjects Grid ... */}
                  {filteredSubjects.length === 0 && filteredVideos.length === 0 ? (
                      <div className="text-center py-20 opacity-60">
                          <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1172,7 +1235,6 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Tabs */}
                 <div className="flex p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl mb-6 self-start overflow-x-auto max-w-full no-scrollbar">
                     <button 
                         onClick={() => setSubjectTab('materials')}
@@ -1198,7 +1260,6 @@ export default function App() {
                 <div className="flex-1">
                     {subjectTab === 'materials' && (
                         <div className="animate-fade-in space-y-6">
-                            {/* Progress Tracking */}
                             <div className="glass-panel p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-sky-900/10 dark:to-indigo-900/10 border-sky-100 dark:border-sky-500/10">
                                 <SubjectProgress 
                                     progress={progressData[selectedSubject.id] || 0}
@@ -1207,7 +1268,6 @@ export default function App() {
                                 />
                             </div>
 
-                            {/* Main Drive Link Button */}
                              <div 
                                 onClick={() => openModal('drive', setIsDriveModalOpen)}
                                 className="glass-panel p-6 rounded-2xl cursor-pointer hover:shadow-xl hover:border-sky-400 dark:hover:border-sky-500/50 transition-all group flex items-center justify-between"
@@ -1267,24 +1327,19 @@ export default function App() {
          )}
       </main>
 
-      {/* Global Ad Banner - Visible on ALL pages just above footer */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 mb-8 mt-12">
            <AdBanner />
       </div>
 
-      {/* Modern Fat Footer */}
       <footer className="relative mt-8">
-        {/* Decorative top fade */}
         <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-slate-50 dark:to-black -translate-y-full pointer-events-none"></div>
         
         <div className="glass-panel mx-4 sm:mx-8 mb-8 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden border border-slate-200/60 dark:border-white/5 shadow-2xl bg-white/80 dark:bg-[#080808]/90">
-            {/* Background decorative blobs */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
 
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-12">
                 
-                {/* Brand Section */}
                 <div className="max-w-xs">
                     <div className="flex items-center gap-3 mb-6 group cursor-default">
                         <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-white dark:to-slate-200 p-2.5 rounded-xl text-white dark:text-black shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -1303,44 +1358,34 @@ export default function App() {
                         Empowering Kerala Polytechnic students with premium resources, video lectures, and AI-driven support.
                     </p>
                     
-                    {/* Social Links */}
                     <div className="flex gap-3 flex-wrap">
-                        {/* Instagram */}
                         <a href="https://www.instagram.com/mohdnihadkp?igsh=MWs3M2k1OXNlbTV5YQ==" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-pink-500 hover:text-white transition-all shadow-sm hover:scale-110 hover:shadow-pink-500/30" title="Instagram">
                             <Instagram className="w-4 h-4" />
                         </a>
-                        {/* WhatsApp */}
                         <a href="https://wa.me/919846750898" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-green-500 hover:text-white transition-all shadow-sm hover:scale-110 hover:shadow-green-500/30" title="WhatsApp">
                             <Phone className="w-4 h-4" />
                         </a>
-                        {/* Facebook */}
                         <a href="https://www.facebook.com/share/1BW6L4yPdY/" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm hover:scale-110 hover:shadow-blue-600/30" title="Facebook">
                             <Facebook className="w-4 h-4" />
                         </a>
-                        {/* Twitter */}
                         <a href="https://x.com/mohdnihadkp?t=6AuEYXj5pzlWX6RVQ91Xcw&s=09" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-sky-500 hover:text-white transition-all shadow-sm hover:scale-110 hover:shadow-sky-500/30" title="Twitter / X">
                             <Twitter className="w-4 h-4" />
                         </a>
-                        {/* LinkedIn */}
                         <a href="https://www.linkedin.com/in/mohammed-nihad-kp-71b6b6339?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-700 hover:text-white transition-all shadow-sm hover:scale-110 hover:shadow-blue-700/30" title="LinkedIn">
                             <Linkedin className="w-4 h-4" />
                         </a>
-                        {/* GitHub */}
                         <a href="https://github.com/mohdnihadkp" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-sm hover:scale-110" title="GitHub">
                             <Github className="w-4 h-4" />
                         </a>
-                        {/* Pinterest */}
                         <a href="https://pin.it/4SKTJurgS" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-red-600 hover:text-white transition-all shadow-sm hover:scale-110 hover:shadow-red-600/30" title="Pinterest">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M8 14.5c2.5 3.3 5.5 6 9 7.5"></path><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M12 2v20"></path></svg>
                         </a>
-                        {/* Reddit */}
                         <a href="https://www.reddit.com/u/mohdnihadkp/s/PFtW1jmoiR" target="_blank" rel="noreferrer" className="p-2.5 bg-slate-100 dark:bg-white/5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-orange-500 hover:text-white transition-all shadow-sm hover:scale-110 hover:shadow-orange-500/30" title="Reddit">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="10"></circle><path d="M17 13c0 2-2.5 3-5 3s-5-1-5-3"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
                         </a>
                     </div>
                 </div>
 
-                {/* Feedback Call to Action */}
                 <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-3xl border border-slate-100 dark:border-white/5 max-w-sm">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-2">Have a suggestion?</h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
@@ -1356,10 +1401,8 @@ export default function App() {
                 </div>
             </div>
 
-            {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent my-8"></div>
 
-            {/* Bottom Bar */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 relative z-10 text-xs font-medium text-slate-400 dark:text-slate-500">
                 <p>© {new Date().getFullYear()} PolyStudy. Open Source Education.</p>
                 
