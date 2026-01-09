@@ -17,20 +17,20 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 dark:bg-black/90 backdrop-blur-md p-4 animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 dark:bg-black/90 backdrop-blur-md p-2 md:p-4 animate-fade-in" onClick={onClose}>
       <div 
-        className="glass-panel w-full max-w-6xl h-[90vh] rounded-[2.5rem] overflow-hidden bg-[#f8f9fa] dark:bg-[#050505] border border-black/10 dark:border-white/10 shadow-2xl relative flex flex-col md:flex-row"
+        className="glass-panel w-full max-w-6xl h-[95vh] md:h-[90vh] rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-[#f8f9fa] dark:bg-[#050505] border border-black/10 dark:border-white/10 shadow-2xl relative flex flex-col md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Header */}
-        <div className="md:hidden p-4 border-b border-black/5 dark:border-white/5 flex justify-between items-center bg-white/80 dark:bg-white/5 backdrop-blur-xl z-20">
-            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="md:hidden p-3 border-b border-black/5 dark:border-white/5 flex justify-between items-center bg-white/80 dark:bg-white/5 backdrop-blur-xl z-20 shrink-0">
+            <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <span className={`p-1.5 rounded-lg ${tabs.find(t => t.id === activeTab)?.bg} ${tabs.find(t => t.id === activeTab)?.color}`}>
-                    {React.createElement(tabs.find(t => t.id === activeTab)?.icon || Timer, { className: "w-5 h-5" })}
+                    {React.createElement(tabs.find(t => t.id === activeTab)?.icon || Timer, { className: "w-4 h-4" })}
                 </span>
                 <span className="truncate">{tabs.find(t => t.id === activeTab)?.label}</span>
             </h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                 <X className="w-5 h-5" />
             </button>
         </div>
@@ -75,7 +75,7 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
         </div>
 
         {/* Mobile Navigation (Bottom Bar) */}
-        <div className="md:hidden flex overflow-x-auto bg-white dark:bg-black border-t border-black/5 dark:border-white/5 p-2 gap-2 order-last no-scrollbar z-20">
+        <div className="md:hidden flex overflow-x-auto bg-white dark:bg-black border-t border-black/5 dark:border-white/5 p-2 gap-2 order-last no-scrollbar z-20 shrink-0">
             {tabs.map((tab) => (
                 <button
                     key={tab.id}
@@ -93,7 +93,7 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-hidden bg-[#f0f2f5] dark:bg-[#000000] relative">
+        <div className="flex-1 overflow-hidden bg-[#f0f2f5] dark:bg-[#000000] relative h-full">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
             
@@ -112,7 +112,7 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
                     <Notebook />
                 )}
                 {activeTab === 'calc' && (
-                    <div className="h-full overflow-y-auto custom-scrollbar bg-[#1a1c20]">
+                    <div className="h-full bg-[#1a1c20] flex items-center justify-center">
                         <ScientificCalculator />
                     </div>
                 )}
@@ -126,7 +126,6 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
 // --- SUB COMPONENTS ---
 
 const PomodoroTimer = () => {
-    // ... (No changes to PomodoroTimer logic)
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [isActive, setIsActive] = useState(false);
     const [mode, setMode] = useState<'work' | 'short' | 'long'>('work');
@@ -186,7 +185,7 @@ const PomodoroTimer = () => {
                 ))}
             </div>
 
-            <div className="relative mb-10 group cursor-default">
+            <div className="relative mb-10 group cursor-default scale-75 md:scale-100">
                 <svg className="transform -rotate-90 w-64 h-64 md:w-80 md:h-80">
                     <circle
                         cx="50%"
@@ -245,7 +244,6 @@ const PomodoroTimer = () => {
 };
 
 const TaskManager = () => {
-    // ... (No changes to TaskManager logic)
     const [tasks, setTasks] = useState<{id: string, text: string, completed: boolean}[]>([]);
     const [newTask, setNewTask] = useState('');
 
@@ -357,7 +355,6 @@ const TaskManager = () => {
     );
 };
 
-// ... Notebook component (keeping as is from previous correct implementation)
 interface Note {
     id: string;
     title: string;
@@ -635,7 +632,7 @@ const ScientificCalculator = () => {
         }
     };
 
-    // Updated ClassWiz Button with Circular styling
+    // Responsive Calc Button
     const CalcButton = ({ 
         label, 
         subLabel = '', 
@@ -644,16 +641,16 @@ const ScientificCalculator = () => {
         onClick, 
         className = '' 
     }: any) => (
-        <div className="relative group select-none flex flex-col items-center justify-center">
-            <div className="flex justify-between w-full px-1 mb-0.5">
-                <span className={`text-[8px] font-bold text-yellow-500 transition-opacity ${isShift ? 'opacity-100' : 'opacity-60'}`}>{subLabel}</span>
-                <span className={`text-[8px] font-bold text-red-500 transition-opacity ${isAlpha ? 'opacity-100' : 'opacity-60'}`}>{alphaLabel}</span>
+        <div className="relative group select-none flex flex-col items-center justify-center w-full h-full">
+            <div className="flex justify-between w-full px-0.5 mb-0.5 absolute -top-3 left-0 right-0">
+                <span className={`text-[6px] md:text-[8px] font-bold text-yellow-500 transition-opacity whitespace-nowrap ${isShift ? 'opacity-100' : 'opacity-60'}`}>{subLabel}</span>
+                <span className={`text-[6px] md:text-[8px] font-bold text-red-500 transition-opacity whitespace-nowrap ${isAlpha ? 'opacity-100' : 'opacity-60'}`}>{alphaLabel}</span>
             </div>
             
             <button
                 onClick={onClick}
                 className={`
-                    w-12 h-12 md:w-14 md:h-14 rounded-full text-sm md:text-base font-bold shadow-[0_2px_0_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-[2px] transition-all flex items-center justify-center border border-white/5
+                    w-full aspect-square rounded-full md:rounded-[12px] lg:rounded-full text-xs md:text-sm lg:text-base font-bold shadow-[0_2px_0_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-[1px] transition-all flex items-center justify-center border border-white/5
                     ${type === 'std' ? 'bg-white text-black' : ''}
                     ${type === 'black' ? 'bg-[#2a2a2a] text-white hover:bg-[#333]' : ''}
                     ${type === 'nav' ? 'bg-[#d1d5db] text-black text-xs hover:bg-[#e5e7eb]' : ''}
@@ -668,21 +665,21 @@ const ScientificCalculator = () => {
     );
 
     return (
-        <div className="flex flex-col items-center justify-center h-full min-h-[600px] bg-[#1a1c20] p-2 md:p-6 font-mono">
-            {/* Casio Frame */}
-            <div className="w-full max-w-sm bg-[#121212] rounded-[30px] p-5 shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-[#333] relative overflow-hidden">
+        <div className="w-full h-full flex flex-col p-2 md:p-4 bg-[#1a1c20] font-mono">
+            {/* Casio Frame - Flexible Width/Height */}
+            <div className="w-full max-w-sm mx-auto h-full flex flex-col bg-[#121212] rounded-[20px] p-3 md:p-5 shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-[#333] relative">
                 
                 {/* Branding */}
-                <div className="flex justify-between items-end mb-4 px-2 relative z-10">
-                    <span className="text-white font-bold tracking-widest text-xs">CASIO</span>
-                    <div className="text-[10px] text-gray-400 font-bold italic">fx-991CW</div>
-                    <span className="text-[8px] text-cyan-400 font-bold border border-cyan-400 px-1 rounded">CLASSWIZ</span>
+                <div className="flex justify-between items-end mb-2 px-1 relative z-10 shrink-0">
+                    <span className="text-white font-bold tracking-widest text-[10px] md:text-xs">CASIO</span>
+                    <div className="text-[8px] md:text-[10px] text-gray-400 font-bold italic">fx-991CW</div>
+                    <span className="text-[7px] md:text-[8px] text-cyan-400 font-bold border border-cyan-400 px-1 rounded">CLASSWIZ</span>
                 </div>
 
-                {/* Screen */}
-                <div className="bg-[#eff5f0] border-4 border-[#333] rounded-lg h-32 mb-6 shadow-inner relative overflow-hidden flex flex-col p-2">
+                {/* Screen - Flexible Height */}
+                <div className="bg-[#eff5f0] border-4 border-[#333] rounded-lg h-24 md:h-32 mb-4 shadow-inner relative overflow-hidden flex flex-col p-2 shrink-0">
                     {/* Status Bar */}
-                    <div className="flex justify-between text-[9px] font-bold text-black border-b border-black/10 pb-1 mb-1">
+                    <div className="flex justify-between text-[8px] md:text-[9px] font-bold text-black border-b border-black/10 pb-1 mb-1">
                         <span className="bg-black text-white px-1.5 rounded-sm">{angleMode}</span>
                         <span className="flex gap-2">
                             {isShift && <span className="bg-yellow-500 text-white px-1.5">S</span>}
@@ -690,25 +687,23 @@ const ScientificCalculator = () => {
                         </span>
                     </div>
                     {/* Calculation Area */}
-                    <div className="flex-1 text-black font-medium text-xl overflow-x-auto whitespace-nowrap px-1 custom-scrollbar flex items-center">
-                        {display}<span className="animate-pulse w-0.5 h-5 bg-black ml-0.5"></span>
+                    <div className="flex-1 text-black font-medium text-lg md:text-xl overflow-x-auto whitespace-nowrap px-1 custom-scrollbar flex items-center">
+                        {display}<span className="animate-pulse w-0.5 h-4 md:h-5 bg-black ml-0.5"></span>
                     </div>
                     {/* Result Area */}
-                    <div className="text-right text-3xl font-bold text-black px-1 tracking-tight mt-auto">
+                    <div className="text-right text-2xl md:text-3xl font-bold text-black px-1 tracking-tight mt-auto">
                         {result}
                     </div>
                 </div>
 
-                {/* Keypad */}
-                <div className="relative z-10 grid grid-cols-4 gap-x-2 gap-y-3 px-1 pb-2">
+                {/* Keypad - Responsive Grid */}
+                <div className="relative z-10 grid grid-cols-4 gap-2 md:gap-3 flex-1 overflow-y-auto content-start py-1 px-1 custom-scrollbar">
                     
                     {/* Top Control Cluster */}
-                    <div className="col-span-4 grid grid-cols-4 gap-2 mb-2">
-                        <CalcButton label="SHIFT" type="gold" onClick={() => handlePress('SHIFT')} />
-                        <CalcButton label="ALPHA" type="nav" className="!text-red-600" onClick={() => handlePress('ALPHA')} />
-                        <CalcButton label="MENU" type="nav" />
-                        <CalcButton label="ON" type="nav" onClick={() => { setDisplay(''); setResult(''); }} />
-                    </div>
+                    <CalcButton label="SHIFT" type="gold" onClick={() => handlePress('SHIFT')} />
+                    <CalcButton label="ALPHA" type="nav" className="!text-red-600" onClick={() => handlePress('ALPHA')} />
+                    <CalcButton label="MENU" type="nav" />
+                    <CalcButton label="ON" type="nav" onClick={() => { setDisplay(''); setResult(''); }} />
 
                     {/* Scientific Functions */}
                     <CalcButton label="OPTN" type="black" />
@@ -729,7 +724,7 @@ const ScientificCalculator = () => {
                     <CalcButton label="sin" subLabel="sin⁻¹" type="black" onClick={() => handlePress(isShift ? 'asin(' : 'sin(')} />
                     <CalcButton label="cos" subLabel="cos⁻¹" type="black" onClick={() => handlePress(isShift ? 'acos(' : 'cos(')} />
                     <CalcButton label="tan" subLabel="tan⁻¹" type="black" onClick={() => handlePress(isShift ? 'atan(' : 'tan(')} />
-                    <CalcButton label="STO" subLabel="RECALL" type="black" />
+                    <CalcButton label="STO" subLabel="RCL" type="black" />
 
                     {/* Number Pad */}
                     <CalcButton label="7" type="std" onClick={() => handlePress('7')} />
@@ -753,15 +748,15 @@ const ScientificCalculator = () => {
                     <CalcButton label="-" type="std" onClick={() => handlePress('-')} />
 
                     <CalcButton label="Ans" type="std" onClick={() => handlePress('Ans')} />
-                    <div className="col-span-2 flex justify-center">
-                        <CalcButton label="EXE" type="std" className="!w-[90%] !bg-black !text-white !border-white/20" onClick={() => handlePress('=')} />
+                    <div className="col-span-2">
+                        <CalcButton label="EXE" type="std" className="!w-full !aspect-auto !h-full !bg-black !text-white !border-white/20 !rounded-[12px]" onClick={() => handlePress('=')} />
                     </div>
                     <CalcButton label="÷" type="std" onClick={() => handlePress('÷')} />
                 </div>
             </div>
             
-            {/* History Tape */}
-            <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 w-48 bg-[#121212] border border-[#333] rounded-xl p-4 text-xs font-mono text-gray-400">
+            {/* History Tape - Desktop Only */}
+            <div className="hidden xl:block absolute right-8 top-1/2 -translate-y-1/2 w-48 bg-[#121212] border border-[#333] rounded-xl p-4 text-xs font-mono text-gray-400 shadow-xl">
                 <div className="flex items-center gap-2 mb-2 text-gray-500 border-b border-gray-800 pb-2">
                     <History className="w-3 h-3" /> Tape
                 </div>
