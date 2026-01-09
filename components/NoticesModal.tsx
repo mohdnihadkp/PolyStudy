@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { X, ExternalLink } from 'lucide-react';
+import { X, ExternalLink, Sparkles } from 'lucide-react';
 import { APP_NOTICES } from '../constants';
 
 interface NoticesModalProps {
@@ -55,13 +56,25 @@ const NoticesModal: React.FC<NoticesModalProps> = ({ onClose }) => {
 
                 {/* Header Section */}
                 <div className="relative z-10 pt-8 pb-4 px-6 md:px-10 ml-4 md:ml-12 flex justify-between items-start border-b border-transparent">
-                    <div>
-                        <div className="inline-block px-4 py-1 bg-black/5 dark:bg-white/10 rounded-sm transform -rotate-1 mb-2">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Classified</span>
-                        </div>
-                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mix-blend-multiply dark:mix-blend-normal font-serif">
+                    <div className="w-full pr-8">
+                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mix-blend-multiply dark:mix-blend-normal font-serif mb-3">
                             Notice Board
                         </h2>
+                        
+                        {/* Promotional Text Box */}
+                        <div className="relative bg-white/50 dark:bg-black/20 p-3 rounded-lg border border-slate-200 dark:border-white/10 backdrop-blur-sm transform -rotate-1 hover:rotate-0 transition-transform duration-300">
+                            <div className="flex items-start gap-2">
+                                <Sparkles className="w-4 h-4 text-amber-500 mt-1 flex-shrink-0 animate-pulse" />
+                                <div>
+                                    <h3 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                                        Kerala Polytechnic Study Materials & Question Papers - PolyStudy
+                                    </h3>
+                                    <p className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 leading-snug font-medium">
+                                        Premium SITTTR/DTE Kerala diploma resources, solved papers, and AI tutoring for academic excellence.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <button 
@@ -96,7 +109,7 @@ const NoticesModal: React.FC<NoticesModalProps> = ({ onClose }) => {
                                     <div className="ml-12 md:ml-20 pl-4 relative">
                                         {/* Pin/Sticker for New Items */}
                                         {notice.isNew && (
-                                            <div className="absolute -right-2 -top-4 transform rotate-12 bg-yellow-400 text-yellow-900 text-[10px] font-black px-3 py-1 shadow-md border-2 border-white dark:border-black z-20">
+                                            <div className="absolute -right-2 -top-4 transform rotate-12 bg-yellow-400 text-yellow-900 text-[10px] font-black px-3 py-1 shadow-md border-2 border-white dark:border-black z-20 rounded-sm">
                                                 NEW!
                                             </div>
                                         )}
