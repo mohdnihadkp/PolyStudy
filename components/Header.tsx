@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Sun, Moon, X, Menu, Home, RefreshCw, Bookmark, Hexagon, LayoutGrid, Award, School, BookOpen, ChevronRight, Film, Calculator, Bell, NotebookPen, Info, MessageSquare } from 'lucide-react';
 import { APP_NOTICES } from '../constants';
@@ -58,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({
         aria-label={label}
         className={`w-full flex items-center p-3 rounded-2xl transition-all text-left group border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:border-transparent ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-100 dark:hover:bg-white/5 hover:border-slate-200 dark:hover:border-white/10 active:scale-[0.98]'}`}
     >
-        <div className={`p-2.5 rounded-xl mr-4 transition-transform duration-300 flex-shrink-0 ${disabled ? 'bg-slate-100 dark:bg-neutral-800 text-slate-400' : 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 group-hover:scale-110 group-hover:bg-sky-500 group-hover:text-white'}`}>
+        <div className={`p-2.5 rounded-xl mr-4 transition-transform duration-300 flex-shrink-0 ${disabled ? 'bg-slate-100 dark:bg-neutral-800 text-slate-400' : 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-sky-500 group-hover:text-white'}`}>
             <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
@@ -67,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({
                     {label}
                 </span>
                 {badge && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-neutral-700 text-slate-500 dark:text-slate-300 px-2 py-0.5 rounded-full flex-shrink-0 group-hover:bg-sky-100 dark:group-hover:bg-sky-900/50 group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-neutral-700 text-slate-500 dark:text-slate-300 px-2 py-0.5 rounded-full flex-shrink-0 group-hover:bg-sky-100 dark:group-hover:bg-sky-900/50 group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors animate-pulse">
                         {badge}
                     </span>
                 )}
@@ -88,8 +89,8 @@ const Header: React.FC<HeaderProps> = ({
           onClick={onHomeClick}
           aria-label="Go to Home"
         >
-          <div className="mr-2 md:mr-3 flex items-center justify-center">
-             <div className="bg-gradient-to-br from-sky-500 to-blue-600 text-white p-2 md:p-2.5 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-blue-500/30">
+          <div className="mr-2 md:mr-3 flex items-center justify-center transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+             <div className="bg-gradient-to-br from-sky-500 to-blue-600 text-white p-2 md:p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
                 <Hexagon className="w-5 h-5 md:w-6 md:h-6 fill-current" />
              </div>
           </div>
@@ -104,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="hidden md:flex flex-1 max-w-md mx-6">
             <div className="relative w-full group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-sky-500">
-                    <Search className="h-4 w-4 text-slate-400 group-focus-within:text-sky-500" />
+                    <Search className="h-4 w-4 text-slate-400 group-focus-within:text-sky-500 transition-transform group-focus-within:scale-110" />
                 </div>
                 <input 
                     type="text" 
