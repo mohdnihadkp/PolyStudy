@@ -119,6 +119,6 @@ export interface ScholarshipPost {
   description: string;
   eligibility: string[];
   applicationLink: string;
-  tags: string[]; // e.g., "Merit", "State Govt", "Girls Only"
+  tags: string[]; // e.g., "Merit", "State Govt", ""
   isNew?: boolean;
 }
