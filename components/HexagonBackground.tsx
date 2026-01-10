@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -10,9 +11,9 @@ const HexagonBackground: React.FC = () => {
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // --- 1. SCENE & CAMERA SETUP ---
+    // --- 1. SCENE SETUP ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020205); // Very deep space blue/black
+    scene.background = new THREE.Color(0x020205); // Deep space black/blue
     scene.fog = new THREE.FogExp2(0x020205, 0.002);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -21,70 +22,85 @@ const HexagonBackground: React.FC = () => {
     const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping; // Cinematic lighting
+    // Cinematic tone mapping
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
     mountRef.current.appendChild(renderer.domElement);
 
-    // --- 2. POST-PROCESSING (BLOOM) ---
+    // --- 2. CONTROLS ---
+    // Allow user to rotate around the earth
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = false; // Prevent scrolling interference
+    controls.enablePan = false;  // Keep earth centered in its zone
+    controls.rotateSpeed = 0.5;
+
+    // --- 3. POST-PROCESSING (BLOOM) ---
     const renderScene = new RenderPass(scene, camera);
-    
-    // Resolution, Strength, Radius, Threshold
     const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
         1.2, // Strength
         0.4, // Radius
-        0.85 // Threshold (Only bright objects glow)
+        0.85 // Threshold
     );
-
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
-    // --- 3. TEXTURE LOADING ---
+    // --- 4. LIGHTING ---
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Increased intensity
+    scene.add(ambientLight);
+
+    const sunLight = new THREE.DirectionalLight(0xffeebb, 2.5); // Bright sun
+    sunLight.position.set(5, 3, 5); // Top-right front
+    scene.add(sunLight);
+
+    // Visual Sun (for bloom)
+    const sunGeo = new THREE.SphereGeometry(2, 32, 32);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffddaa });
+    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+    sunMesh.position.set(40, 20, -20);
+    scene.add(sunMesh);
+
+    // --- 5. EARTH GROUP ---
+    const earthGroup = new THREE.Group();
+    // Earth's tilt
+    earthGroup.rotation.z = 23.5 * Math.PI / 180;
+    scene.add(earthGroup);
+
+    // Load Textures
     const textureLoader = new THREE.TextureLoader();
     const earthMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
     const earthSpecular = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg');
     const earthNormal = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg');
-    const moonMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
+    const earthClouds = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png');
 
-    // --- 4. LIGHTING ---
-    const sunColor = 0xffeebb;
-    
-    // Main Directional Light (Sun rays)
-    const sunLight = new THREE.DirectionalLight(sunColor, 3.0);
-    sunLight.position.set(20, 10, 10);
-    scene.add(sunLight);
-
-    // Point Light (Sun glow source)
-    const sunPointLight = new THREE.PointLight(sunColor, 2.0, 500);
-    sunPointLight.position.set(20, 10, 10);
-    scene.add(sunPointLight);
-
-    // Subtle Ambient Light (Fill for dark side)
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.2);
-    scene.add(ambientLight);
-
-    // --- 5. OBJECTS ---
-
-    // A. The Earth Group (Earth + Atmosphere + Clouds)
-    const earthGroup = new THREE.Group();
-    earthGroup.rotation.z = 23.5 * Math.PI / 180; // Earth's tilt
-    scene.add(earthGroup);
-
-    // A1. Earth Surface
-    const earthGeo = new THREE.SphereGeometry(3, 64, 64);
-    const earthMat = new THREE.MeshStandardMaterial({
+    // Earth Mesh
+    const earthGeo = new THREE.SphereGeometry(2.5, 64, 64);
+    const earthMat = new THREE.MeshPhongMaterial({
         map: earthMap,
+        specularMap: earthSpecular,
         normalMap: earthNormal,
-        roughnessMap: earthSpecular, // Invert logic visually roughly works, or use rough 0.5
-        roughness: 0.5,
-        metalness: 0.1,
+        specular: new THREE.Color(0x333333),
+        shininess: 15
     });
-    // Manually adjust roughness via specular map if needed in loop, but standard material is good.
     const earth = new THREE.Mesh(earthGeo, earthMat);
     earthGroup.add(earth);
 
-    // A2. Atmosphere (Fresnel Shader)
+    // Clouds Mesh
+    const cloudGeo = new THREE.SphereGeometry(2.53, 64, 64);
+    const cloudMat = new THREE.MeshLambertMaterial({
+        map: earthClouds,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending,
+        side: THREE.FrontSide
+    });
+    const clouds = new THREE.Mesh(cloudGeo, cloudMat);
+    earthGroup.add(clouds);
+
+    // Atmosphere Glow (Shader)
     const vertexShader = `
         varying vec3 vNormal;
         void main() {
@@ -95,12 +111,11 @@ const HexagonBackground: React.FC = () => {
     const fragmentShader = `
         varying vec3 vNormal;
         void main() {
-            float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
-            gl_FragColor = vec4(0.2, 0.5, 1.0, 1.0) * intensity * 2.0; 
+            float intensity = pow(0.65 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
+            gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity * 1.8;
         }
     `;
-    // Slightly larger than earth
-    const atmosGeo = new THREE.SphereGeometry(3.25, 64, 64);
+    const atmosGeo = new THREE.SphereGeometry(2.75, 64, 64);
     const atmosMat = new THREE.ShaderMaterial({
         vertexShader,
         fragmentShader,
@@ -109,115 +124,66 @@ const HexagonBackground: React.FC = () => {
         transparent: true
     });
     const atmosphere = new THREE.Mesh(atmosGeo, atmosMat);
-    scene.add(atmosphere); // Add to scene to avoid texture rotation sync issues
+    earthGroup.add(atmosphere);
 
-    // B. The Moon
-    const moonPivot = new THREE.Group(); // Pivot at Earth's center
-    scene.add(moonPivot);
-    
-    const moonGeo = new THREE.SphereGeometry(0.8, 32, 32);
-    const moonMat = new THREE.MeshStandardMaterial({
-        map: moonMap,
-        roughness: 0.8,
-    });
-    const moon = new THREE.Mesh(moonGeo, moonMat);
-    moon.position.set(8, 0, 0); // Distance from Earth
-    moonPivot.add(moon);
-
-    // C. The Sun (Visual Representation)
-    const sunGeo = new THREE.SphereGeometry(2, 32, 32);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffddaa }); // Basic material glows with Bloom
-    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
-    sunMesh.position.set(40, 20, 20); // Far back top-right
-    scene.add(sunMesh);
-
-    // D. Distant Planets
-    const marsGeo = new THREE.SphereGeometry(0.6, 32, 32);
-    const marsMat = new THREE.MeshStandardMaterial({ color: 0xcc4422 });
-    const mars = new THREE.Mesh(marsGeo, marsMat);
-    mars.position.set(-20, 5, -30);
-    scene.add(mars);
-
-    const gasGiantGeo = new THREE.SphereGeometry(4, 32, 32);
-    const gasGiantMat = new THREE.MeshStandardMaterial({ color: 0xddccaa });
-    const gasGiant = new THREE.Mesh(gasGiantGeo, gasGiantMat);
-    gasGiant.position.set(30, -10, -60);
-    scene.add(gasGiant);
-
-    // E. Starfield
-    const starGeo = new THREE.BufferGeometry();
+    // --- 6. REALISTIC STARFIELD ---
     const starCount = 3000;
+    const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
+    const starCols = new Float32Array(starCount * 3);
     const color = new THREE.Color();
 
-    for(let i=0; i<starCount; i++) {
+    for(let i = 0; i < starCount; i++) {
+        // Random positions
         const x = (Math.random() - 0.5) * 600;
         const y = (Math.random() - 0.5) * 600;
-        const z = (Math.random() - 0.5) * 400 - 50; // Push back
+        const z = (Math.random() - 0.5) * 600;
         starPos[i*3] = x;
         starPos[i*3+1] = y;
         starPos[i*3+2] = z;
 
-        // Random star colors (white, blueish, yellowish)
+        // Random colors (White, Blueish, Yellowish)
         const type = Math.random();
-        if (type > 0.9) color.setHex(0xaaaaff); // Blue
-        else if (type > 0.8) color.setHex(0xffddaa); // Yellow
+        if (type > 0.9) color.setHex(0xaaaaff); // Blue tint
+        else if (type > 0.8) color.setHex(0xffddaa); // Yellow tint
         else color.setHex(0xffffff); // White
 
-        starColors[i*3] = color.r;
-        starColors[i*3+1] = color.g;
-        starColors[i*3+2] = color.b;
+        starCols[i*3] = color.r;
+        starCols[i*3+1] = color.g;
+        starCols[i*3+2] = color.b;
     }
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(starCols, 3));
 
     const starMat = new THREE.PointsMaterial({
-        size: 0.25,
-        vertexColors: true,
+        size: 0.2,
+        vertexColors: true, // Use the colors we generated
         transparent: true,
         opacity: 0.9,
-        sizeAttenuation: true
+        sizeAttenuation: true // Distant stars look smaller
     });
     const stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
 
-    // --- 6. RESPONSIVE LAYOUT LOGIC ---
+    // --- 7. RESPONSIVE LAYOUT & LOGIC ---
     const updateLayout = () => {
         const width = window.innerWidth;
+        
         if (width < 768) {
             // Mobile: Bottom Center
-            earthGroup.position.set(0, -3.5, 0);
-            atmosphere.position.set(0, -3.5, 0);
-            moonPivot.position.set(0, -3.5, 0);
-            
-            // Adjust camera for mobile
-            camera.position.z = 20;
+            earthGroup.position.set(0, -3.0, 0);
+            // Ensure orbit controls rotate around the new earth position
+            controls.target.set(0, -3.0, 0);
         } else {
-            // Desktop: Left Side (Hero layout)
+            // Desktop: Left Side
             earthGroup.position.set(-6.5, 0, 0);
-            atmosphere.position.set(-6.5, 0, 0);
-            moonPivot.position.set(-6.5, 0, 0);
-            
-            camera.position.z = 18;
+            controls.target.set(-6.5, 0, 0);
         }
+        controls.update();
     };
+    
+    // Initial call
     updateLayout();
-
-    // --- 7. INTERACTION ---
-    let mouseX = 0;
-    let mouseY = 0;
-    let targetRotY = 0;
-    let targetRotX = 0;
-
-    const onMouseMove = (e: MouseEvent) => {
-        const x = (e.clientX / window.innerWidth) * 2 - 1;
-        const y = -(e.clientY / window.innerHeight) * 2 + 1;
-        
-        // Increased sensitivity
-        targetRotY = x * 0.8; 
-        targetRotX = y * 0.5;
-    };
 
     const handleResize = () => {
         const width = window.innerWidth;
@@ -232,41 +198,22 @@ const HexagonBackground: React.FC = () => {
         updateLayout();
     };
 
-    document.addEventListener('mousemove', onMouseMove);
     window.addEventListener('resize', handleResize);
 
     // --- 8. ANIMATION LOOP ---
-    const clock = new THREE.Clock();
-
     const animate = () => {
         requestAnimationFrame(animate);
-        const elapsedTime = clock.getElapsedTime();
 
-        // Earth Rotation (Day/Night cycle)
-        earth.rotation.y += 0.0008;
-
-        // Interactive Rotation (LERP for smoothness)
-        // We rotate the group, so axis tilt is preserved
-        const lerpFactor = 0.05;
-        earthGroup.rotation.y += (targetRotY - earthGroup.rotation.y) * lerpFactor;
-        earthGroup.rotation.x += (targetRotX - earthGroup.rotation.x) * lerpFactor;
-
-        // Sync atmosphere glow position with earth group manually if needed, 
-        // but here we just copy position in layout update. 
-        // Atmosphere needs to look at camera usually, but sphere symmetry makes it okay.
-
-        // Orbit Moon
-        moonPivot.rotation.y += 0.002;
-        moon.rotation.y += 0.005; // Moon spins
-
-        // Orbit Distant Planets (around 0,0,0 or their own logic)
-        mars.position.x = Math.sin(elapsedTime * 0.1) * -20;
-        mars.position.z = Math.cos(elapsedTime * 0.1) * -30 - 10;
+        // Auto-rotation (Slow)
+        // Note: Manual rotation works because controls update camera position relative to target
+        // We rotate the Earth mesh itself for day/night cycle simulation independently of camera
+        earth.rotation.y += 0.0005;
+        clouds.rotation.y += 0.0007; // Clouds move slightly faster
         
-        gasGiant.position.x = Math.cos(elapsedTime * 0.05) * 40;
-        gasGiant.position.z = Math.sin(elapsedTime * 0.05) * 20 - 50;
+        // Update controls
+        controls.update();
 
-        // Render via Composer
+        // Render
         composer.render();
     };
 
@@ -274,23 +221,20 @@ const HexagonBackground: React.FC = () => {
 
     // --- CLEANUP ---
     return () => {
-        document.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('resize', handleResize);
         
         if (mountRef.current) {
             mountRef.current.removeChild(renderer.domElement);
         }
 
-        // Dispose
+        // Dispose assets
         earthGeo.dispose(); earthMat.dispose();
-        moonGeo.dispose(); moonMat.dispose();
+        cloudGeo.dispose(); cloudMat.dispose();
         atmosGeo.dispose(); atmosMat.dispose();
         sunGeo.dispose(); sunMat.dispose();
-        marsGeo.dispose(); marsMat.dispose();
-        gasGiantGeo.dispose(); gasGiantMat.dispose();
         starGeo.dispose(); starMat.dispose();
         
-        earthMap.dispose(); earthSpecular.dispose(); earthNormal.dispose(); moonMap.dispose();
+        earthMap.dispose(); earthSpecular.dispose(); earthNormal.dispose(); earthClouds.dispose();
         
         renderer.dispose();
         composer.dispose();
@@ -307,10 +251,9 @@ const HexagonBackground: React.FC = () => {
             width: '100%', 
             height: '100%', 
             zIndex: -1, 
-            background: '#000000',
-            pointerEvents: 'none'
+            background: '#020205',
+            // pointerEvents must be 'auto' or unset to allow OrbitControls to work
         }} 
-        aria-hidden="true"
     />
   );
 };
