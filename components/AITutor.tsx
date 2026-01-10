@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, Sparkles, AlertCircle, Brain, BookOpen, CheckCircle2, XCircle, ArrowRight, RotateCcw } from 'lucide-react';
+import { Send, Bot, Sparkles, AlertCircle, Brain, BookOpen, CheckCircle2, XCircle, ArrowRight, RotateCcw, Copy, Check } from 'lucide-react';
 import { startChatSession, sendMessageToGemini, generateQuiz } from '../services/geminiService';
 import { ChatMessage, Quiz } from '../types';
 import { Chat, GenerateContentResponse } from '@google/genai';
@@ -94,7 +93,6 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
       for await (const chunk of streamResult) {
         const c = chunk as GenerateContentResponse;
         const text = c.text;
-
         if (text) {
           fullText += text;
           
@@ -118,7 +116,6 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
           }
         }
       }
-
     } catch (err) {
       console.error(err);
       setError("Failed to get a response. Please check your connection or API key.");
