@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Upload, Film, Loader2, Play, Download, Image as ImageIcon, Sparkles, AlertCircle, Wand2 } from 'lucide-react';
+import { X, Upload, Film, Loader2, Play, Download, Image as ImageIcon, Sparkles, AlertCircle, Wand2, RefreshCcw } from 'lucide-react';
 import { generateVeoVideo } from '../services/geminiService';
 
 interface VeoModalProps {
@@ -42,6 +42,11 @@ const VeoModal: React.FC<VeoModalProps> = ({ onClose }) => {
       setIsGenerating(false);
     }
   };
+
+  const handleRetry = () => {
+      setError(null);
+      handleGenerate();
+  }
 
   const downloadVideo = () => {
     if (videoUrl) {
@@ -150,9 +155,17 @@ const VeoModal: React.FC<VeoModalProps> = ({ onClose }) => {
                 </div>
 
                 {error && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center text-xs text-red-400 font-medium">
-                        <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                        {error}
+                    <div className="flex flex-col gap-2">
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center text-xs text-red-400 font-medium">
+                            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                            {error}
+                        </div>
+                        <button 
+                            onClick={handleRetry}
+                            className="self-end text-xs font-bold text-violet-400 hover:text-white flex items-center gap-1"
+                        >
+                            <RefreshCcw className="w-3 h-3" /> Retry Generation
+                        </button>
                     </div>
                 )}
 
