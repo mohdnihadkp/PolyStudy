@@ -18,7 +18,8 @@ import {
   ChevronsLeft,
   Shuffle,
   Repeat,
-  Monitor
+  Monitor,
+  AlertTriangle
 } from 'lucide-react';
 
 declare global {
@@ -53,6 +54,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [playerError, setPlayerError] = useState<string | null>(null);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [isPlaylist, setIsPlaylist] = useState(false);
@@ -66,6 +68,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   // Load YouTube API
   useEffect(() => {
     setIsPlaylist(youtubeId.startsWith('PL'));
+    setPlayerError(null);
+    setIsLoading(true);
 
     if (!window.YT) {
       const tag = document.createElement('script');
@@ -136,6 +140,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   }, [isPlaying, isFullscreen, duration, isTheaterMode]); 
 
   const initializePlayer = () => {
+    // Safety check to prevent duplicate initialization
+    if (playerRef.current && playerRef.current.destroy) {
+        try { playerRef.current.destroy(); } catch(e) {}
+    }
+
     const isPL = youtubeId.startsWith('PL');
     const playerConfig: any = {
       height: '100%',
@@ -150,6 +159,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
       events: {
         onReady: onPlayerReady,
         onStateChange: onPlayerStateChange,
+        onError: onPlayerError,
       },
     };
 
@@ -167,6 +177,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
     setIsLoading(false);
     setDuration(event.target.getDuration());
     event.target.playVideo();
+  };
+
+  const onPlayerError = (event: any) => {
+    setIsLoading(false);
+    let msg = "An unexpected error occurred.";
+    // YouTube Error Codes
+    switch (Number(event.data)) {
+        case 2:
+            msg = "Invalid video ID parameter.";
+            break;
+        case 5:
+            msg = "The requested content cannot be played in an HTML5 player.";
+            break;
+        case 100:
+            msg = "The video requested was not found or is private.";
+            break;
+        case 101:
+        case 150:
+            msg = "The owner of the requested video does not allow it to be played in embedded players.";
+            break;
+        default:
+            msg = "Unable to load video. Please check your network connection.";
+    }
+    setPlayerError(msg);
   };
 
   const onPlayerStateChange = (event: any) => {
@@ -202,6 +236,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const togglePlay = () => {
+    if (playerError) return;
     if (playerRef.current && playerRef.current.getPlayerState) {
         const state = playerRef.current.getPlayerState();
         if (state === window.YT.PlayerState.PLAYING) {
@@ -213,6 +248,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (playerError) return;
     const newProgress = parseFloat(e.target.value);
     const newTime = (newProgress / 100) * duration;
     playerRef.current.seekTo(newTime, true);
@@ -221,6 +257,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (playerError) return;
     const newVolume = parseInt(e.target.value);
     setVolume(newVolume);
     playerRef.current.setVolume(newVolume);
@@ -235,6 +272,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const toggleMute = () => {
+    if (playerError) return;
     if (isMuted) {
       playerRef.current.unMute();
       playerRef.current.setVolume(volume || 100);
@@ -246,12 +284,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const changePlaybackRate = (rate: number) => {
+    if (playerError) return;
     playerRef.current.setPlaybackRate(rate);
     setPlaybackRate(rate);
     // Don't close menu immediately for better UX
   };
   
   const toggleShuffle = () => {
+    if (playerError) return;
     if (playerRef.current && playerRef.current.setShuffle) {
         const newState = !isShuffle;
         playerRef.current.setShuffle(newState);
@@ -260,6 +300,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const toggleLoop = () => {
+    if (playerError) return;
     if (playerRef.current && playerRef.current.setLoop) {
         const newState = !isLoop;
         playerRef.current.setLoop(newState);
@@ -268,6 +309,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const skip = (seconds: number) => {
+    if (playerError) return;
     if (playerRef.current && playerRef.current.getCurrentTime) {
         const current = playerRef.current.getCurrentTime();
         const newTime = Math.min(Math.max(current + seconds, 0), duration);
@@ -278,12 +320,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
   };
 
   const nextTrack = () => {
+      if (playerError) return;
       if (playerRef.current && playerRef.current.nextVideo) {
           playerRef.current.nextVideo();
       }
   };
 
   const prevTrack = () => {
+      if (playerError) return;
       if (playerRef.current && playerRef.current.previousVideo) {
           playerRef.current.previousVideo();
       }
@@ -317,21 +361,48 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
       >
         
         {/* Loading State */}
-        {isLoading && (
+        {isLoading && !playerError && (
           <div className="absolute inset-0 flex items-center justify-center z-10 bg-slate-900">
             <Loader2 className="w-12 h-12 text-sky-500 animate-spin" />
           </div>
         )}
 
+        {/* Error State Overlay */}
+        {playerError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-slate-900/90 p-8 text-center">
+                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+                    <AlertTriangle className="w-10 h-10 text-red-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Video Unavailable</h3>
+                <p className="text-slate-400 mb-8 max-w-md">{playerError}</p>
+                
+                <button 
+                    onClick={() => window.open(`https://www.youtube.com/watch?v=${youtubeId}`, '_blank')}
+                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold flex items-center shadow-lg hover:scale-105 transition-all"
+                >
+                    <ExternalLink className="w-5 h-5 mr-2" />
+                    Watch on YouTube
+                </button>
+                <button 
+                    onClick={onClose}
+                    className="mt-4 text-sm font-bold text-slate-500 hover:text-white transition-colors"
+                >
+                    Go Back
+                </button>
+            </div>
+        )}
+
         {/* YouTube Iframe Container */}
         <div id="youtube-player" className="w-full h-full pointer-events-none" />
 
-        {/* Overlay Interaction Layer (Click to Play/Pause) */}
-        <div 
-            className="absolute inset-0 z-0" 
-            onClick={togglePlay}
-            onDoubleClick={toggleFullscreen}
-        ></div>
+        {/* Overlay Interaction Layer (Click to Play/Pause) - Disabled on error */}
+        {!playerError && (
+            <div 
+                className="absolute inset-0 z-0" 
+                onClick={togglePlay}
+                onDoubleClick={toggleFullscreen}
+            ></div>
+        )}
 
         {/* --- CUSTOM CONTROLS OVERLAY --- */}
         <div 
@@ -339,7 +410,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
                 isPlaying 
                   ? 'opacity-0 group-hover:opacity-100 delay-1000 group-hover:delay-0' 
                   : 'opacity-100'
-            }`}
+            } ${playerError ? 'hidden' : ''}`}
         >
           
           {/* Top Bar */}
@@ -362,7 +433,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
 
           {/* Center Play Button (Visible only when paused/hovering) */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-             {!isPlaying && !isLoading && (
+             {!isPlaying && !isLoading && !playerError && (
                  <div className="glass-panel p-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl animate-pulse-slow">
                      <Play className="w-10 h-10 text-white fill-current ml-1" />
                  </div>
