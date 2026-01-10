@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, Sparkles, AlertCircle, Brain, BookOpen, CheckCircle2, XCircle, ArrowRight, RotateCcw, Copy, Check } from 'lucide-react';
+import { Send, Bot, Sparkles, AlertCircle, Brain, BookOpen, CheckCircle2, XCircle, ArrowRight, RotateCcw, Copy, Check, RefreshCcw } from 'lucide-react';
 import { startChatSession, sendMessageToGemini, generateQuiz } from '../services/geminiService';
 import { ChatMessage, Quiz } from '../types';
 import { Chat, GenerateContentResponse } from '@google/genai';
@@ -116,13 +116,31 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
           }
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Failed to get a response. Please check your connection or API key.");
+      let errorMsg = "Failed to get a response. Please check your connection.";
+      if (err.message) {
+          if (err.message.includes('429')) errorMsg = "Usage quota exceeded. Please try again later.";
+          else if (err.message.includes('403')) errorMsg = "API Key error. Please check your configuration.";
+          else if (err.message.includes('503')) errorMsg = "Service temporarily unavailable. Please retry.";
+      }
+      
+      setError(errorMsg);
       setMessages(prev => prev.filter(msg => msg.id !== modelMsgId)); // Remove failed placeholder
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+      // If there is a last user message, populate input with it
+      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+      if (lastUserMsg && lastUserMsg.id !== 'welcome') {
+          setInputText(lastUserMsg.text);
+          // Optional: Remove the last failed user message to avoid duplication in UI
+          setMessages(prev => prev.filter(m => m.id !== lastUserMsg.id));
+      }
+      setError(null);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -318,10 +336,19 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
                 ))}
                 
                 {error && (
-                    <div className="flex justify-center">
-                        <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-xl text-xs flex items-center shadow-sm">
-                            <AlertCircle className="w-4 h-4 mr-2" />
-                            {error}
+                    <div className="flex justify-center w-full px-4 animate-fade-in">
+                        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-2xl shadow-lg flex flex-col md:flex-row items-center gap-3 md:gap-6 max-w-md w-full">
+                            <div className="flex items-center gap-3">
+                                <AlertCircle className="w-5 h-5 shrink-0" />
+                                <span className="text-xs md:text-sm font-medium">{error}</span>
+                            </div>
+                            <button 
+                                onClick={handleRetry}
+                                className="px-4 py-2 bg-red-100 dark:bg-red-500/20 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-700 dark:text-red-300 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 whitespace-nowrap"
+                            >
+                                <RefreshCcw className="w-3.5 h-3.5" />
+                                Retry
+                            </button>
                         </div>
                     </div>
                 )}
