@@ -39,7 +39,7 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
               'params' : {}
             };
           </script>
-          <script type="text/javascript" src="https://www.highperformanceformat.com/4d14f8ed21408146f8235e7f187db494/invoke.js"></script>
+          <script type="text/javascript" src="https://remotelydependedchance.com/4d14f8ed21408146f8235e7f187db494/invoke.js"></script>
         </body>
         </html>
       `;
