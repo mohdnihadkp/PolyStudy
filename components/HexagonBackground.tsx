@@ -9,170 +9,223 @@ const HexagonBackground: React.FC = () => {
 
     // --- SCENE SETUP ---
     const scene = new THREE.Scene();
-    // Deep dark space background (slightly off-black for aesthetics)
-    scene.background = new THREE.Color(0x020205);
-    // Add some fog for depth fading
-    scene.fog = new THREE.FogExp2(0x020205, 0.002);
+    scene.background = new THREE.Color(0x000000); // Pure black space
+    // Subtle fog to fade distant stars
+    scene.fog = new THREE.FogExp2(0x000000, 0.0003); 
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    // Position camera to see both Sun and Earth
-    camera.position.z = 20;
-    camera.position.x = 0;
-    camera.position.y = 2;
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 22);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Tone mapping helps with the high dynamic range of the sun light
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; 
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     mountRef.current.appendChild(renderer.domElement);
+
+    // --- LIGHTING ---
+    // 1. Sun Light (Main dramatic source)
+    const sunLight = new THREE.PointLight(0xffffff, 3.5, 300); 
+    sunLight.position.set(0, 0, 0); // Emits from the sun mesh
+    scene.add(sunLight);
+
+    // 2. Ambient Light (Very dim to keep shadows dark)
+    const ambientLight = new THREE.AmbientLight(0x111111);
+    scene.add(ambientLight);
 
     // --- OBJECTS ---
 
-    // 1. STARFIELD (Particles)
-    const starGeometry = new THREE.BufferGeometry();
-    const starCount = 2000;
-    const posArray = new Float32Array(starCount * 3);
-    
-    for(let i = 0; i < starCount * 3; i++) {
-        // Random positions in a large cube
-        posArray[i] = (Math.random() - 0.5) * 200; 
-    }
-    
-    starGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-    const starMaterial = new THREE.PointsMaterial({
-        size: 0.15,
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.8,
+    // 1. THE SUN
+    const sunGeo = new THREE.SphereGeometry(3.5, 64, 64);
+    const sunMat = new THREE.MeshBasicMaterial({ 
+        color: 0xffddaa, // Warm white center
     });
-    const starMesh = new THREE.Points(starGeometry, starMaterial);
-    scene.add(starMesh);
-
-    // 2. SUN (Center)
-    // Core geometry
-    const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
-    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffaa33 }); 
-    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    const sun = new THREE.Mesh(sunGeo, sunMat);
     scene.add(sun);
 
-    // Sun Glow (Transparent sphere slightly larger)
-    const glowGeometry = new THREE.SphereGeometry(3.2, 32, 32);
-    const glowMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0xffaa33, 
-        transparent: true, 
-        opacity: 0.3 
+    // Sun Corona/Glow (Simulated with transparent larger sphere)
+    const sunGlowGeo = new THREE.SphereGeometry(4.2, 64, 64);
+    const sunGlowMat = new THREE.MeshBasicMaterial({
+        color: 0xffaa00, // Orange glow
+        transparent: true,
+        opacity: 0.15,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide, // Render on inside to avoid occlusion issues
     });
-    const sunGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+    const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
     scene.add(sunGlow);
 
-    // Light Source (Point light from Sun)
-    const sunLight = new THREE.PointLight(0xffffff, 2, 300);
-    sunLight.position.set(0, 0, 0);
-    scene.add(sunLight);
-    
-    // Dim ambient light so shadow side of Earth isn't pitch black
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.2); 
-    scene.add(ambientLight);
+    // 2. THE EARTH GROUP (For Orbiting)
+    const earthGroup = new THREE.Group();
+    earthGroup.position.set(14, 0, 0); // Initial distance from sun
+    // Tilt the Earth's axis
+    earthGroup.rotation.z = 23.5 * Math.PI / 180; 
+    scene.add(earthGroup);
 
-    // 3. EARTH (Offset)
-    const earthGeometry = new THREE.SphereGeometry(1.2, 32, 32);
-    const earthMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x1E90FF, // Dodger Blue
-        roughness: 0.6,
-        metalness: 0.1,
-        emissive: 0x112244, // Slight self-illumination for atmosphere hint
-        emissiveIntensity: 0.2
+    // Earth Sphere
+    const earthGeo = new THREE.SphereGeometry(1.5, 64, 64);
+    const earthMat = new THREE.MeshPhongMaterial({
+        color: 0x1a44aa, // Deep Ocean Blue
+        emissive: 0x001133, // Night side isn't pitch black (city lights/atmosphere)
+        specular: 0x444444, // Water reflection
+        shininess: 25,
+        flatShading: false
     });
-    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+    const earth = new THREE.Mesh(earthGeo, earthMat);
+    earthGroup.add(earth);
+
+    // Atmospheric Glow (Custom Shader)
+    // Calculates intensity based on "Fresnel" effect (view angle relative to surface normal)
+    const vertexShader = `
+        varying vec3 vNormal;
+        void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `;
+    const fragmentShader = `
+        varying vec3 vNormal;
+        void main() {
+            float intensity = pow(0.65 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
+            gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity; // Cyan/Blue glow
+        }
+    `;
     
-    // Position Earth to the right and slightly front
-    earth.position.set(10, 0, 5);
-    // Tilt Earth axis slightly
-    earth.rotation.z = 23.5 * (Math.PI / 180); 
-    scene.add(earth);
+    const atmosGeo = new THREE.SphereGeometry(1.7, 64, 64);
+    const atmosMat = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide,
+        transparent: true
+    });
+    const atmosphere = new THREE.Mesh(atmosGeo, atmosMat);
+    earthGroup.add(atmosphere);
+
+    // 3. REALISTIC STARFIELD (Custom Point Shader)
+    const starsCount = 4000;
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = new Float32Array(starsCount * 3);
+    const starSizes = new Float32Array(starsCount);
+
+    for(let i=0; i<starsCount; i++) {
+        // Distribute stars in a large sphere
+        const r = 80 + Math.random() * 200; 
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+        starPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        starPos[i*3+2] = r * Math.cos(phi);
+
+        // Randomize size for depth perception
+        starSizes[i] = Math.random() * 2.0; 
+    }
+
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    starGeo.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+
+    // Shader to render soft circular stars instead of squares
+    const starVertex = `
+        attribute float size;
+        void main() {
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (300.0 / -mvPosition.z); // Size attenuation
+            gl_Position = projectionMatrix * mvPosition;
+        }
+    `;
+    const starFragment = `
+        void main() {
+            vec2 coord = gl_PointCoord - vec2(0.5);
+            float dist = length(coord);
+            if(dist > 0.5) discard; // Make it round
+            
+            // Soft gradient from center
+            float strength = 1.0 - (dist * 2.0);
+            strength = pow(strength, 2.0); 
+            
+            gl_FragColor = vec4(1.0, 1.0, 1.0, strength);
+        }
+    `;
+
+    const starMat = new THREE.ShaderMaterial({
+        uniforms: {},
+        vertexShader: starVertex,
+        fragmentShader: starFragment,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const stars = new THREE.Points(starGeo, starMat);
+    scene.add(stars);
 
     // --- INTERACTION ---
     let mouseX = 0;
     let mouseY = 0;
-    let targetX = 0;
-    let targetY = 0;
-
-    const windowHalfX = window.innerWidth / 2;
-    const windowHalfY = window.innerHeight / 2;
-
-    const onDocumentMouseMove = (event: MouseEvent) => {
-        mouseX = (event.clientX - windowHalfX) * 0.001; // Scale down for sensitivity
-        mouseY = (event.clientY - windowHalfY) * 0.001;
+    
+    const onMouseMove = (e: MouseEvent) => {
+        // Normalize mouse position -1 to 1
+        mouseX = (e.clientX - window.innerWidth / 2) * 0.0005;
+        mouseY = (e.clientY - window.innerHeight / 2) * 0.0005;
     };
 
     const handleResize = () => {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        
-        camera.aspect = width / height;
+        camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
+        renderer.setSize(window.innerWidth, window.innerHeight);
     };
 
-    document.addEventListener('mousemove', onDocumentMouseMove);
+    document.addEventListener('mousemove', onMouseMove);
     window.addEventListener('resize', handleResize);
 
     // --- ANIMATION LOOP ---
-    const clock = new THREE.Clock();
-
     const animate = () => {
-        const elapsedTime = clock.getElapsedTime();
+        requestAnimationFrame(animate);
 
         // 1. Rotate Objects
-        // Sun rotates slowly
-        sun.rotation.y += 0.002;
-        sunGlow.rotation.y += 0.002;
-
-        // Earth rotates on its axis
-        earth.rotation.y += 0.01; 
+        sun.rotation.y += 0.001;
         
-        // Optional: Earth orbits Sun very slowly
-        earth.position.x = Math.cos(elapsedTime * 0.1) * 10;
-        earth.position.z = Math.sin(elapsedTime * 0.1) * 10;
-
-        // Rotate starfield slowly for cinematic effect
-        starMesh.rotation.y -= 0.0002;
-
-        // 2. Mouse Parallax (Smooth interpolation)
-        targetX = mouseX * 0.5;
-        targetY = mouseY * 0.5;
-
-        // Move camera slightly opposite to mouse
-        camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY * 5 - camera.position.y) * 0.05;
+        // Earth spins on its axis
+        earth.rotation.y += 0.005; 
         
-        // Make camera always look at scene center
+        // Earth group orbits around the sun (center)
+        earthGroup.rotation.y += 0.0015; 
+        
+        // Stars drift very slowly
+        stars.rotation.y -= 0.0001;
+
+        // 2. Smooth Parallax (Linear Interpolation)
+        // Camera moves slightly opposite to mouse to create depth
+        const targetX = mouseX * 8;
+        const targetY = mouseY * 8;
+        
+        camera.position.x += (targetX - camera.position.x) * 0.05;
+        camera.position.y += (-targetY - camera.position.y) * 0.05;
+        
         camera.lookAt(scene.position);
 
         renderer.render(scene, camera);
-        requestAnimationFrame(animate);
     };
 
     animate();
 
     // --- CLEANUP ---
     return () => {
-        document.removeEventListener('mousemove', onDocumentMouseMove);
+        document.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('resize', handleResize);
         
         if (mountRef.current) {
             mountRef.current.removeChild(renderer.domElement);
         }
 
-        // Three.js Cleanup
-        sunGeometry.dispose();
-        sunMaterial.dispose();
-        glowGeometry.dispose();
-        glowMaterial.dispose();
-        earthGeometry.dispose();
-        earthMaterial.dispose();
-        starGeometry.dispose();
-        starMaterial.dispose();
         renderer.dispose();
+        sunGeo.dispose(); sunMat.dispose();
+        sunGlowGeo.dispose(); sunGlowMat.dispose();
+        earthGeo.dispose(); earthMat.dispose();
+        atmosGeo.dispose(); atmosMat.dispose();
+        starGeo.dispose(); starMat.dispose();
     };
   }, []);
 
@@ -187,7 +240,7 @@ const HexagonBackground: React.FC = () => {
             height: '100%', 
             zIndex: -1, 
             background: '#000000',
-            pointerEvents: 'none' // Important: Allows clicks to pass through to the app
+            pointerEvents: 'none'
         }} 
         aria-hidden="true"
     />
