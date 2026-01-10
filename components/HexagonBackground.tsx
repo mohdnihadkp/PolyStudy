@@ -1,3 +1,4 @@
+import React from 'react';
 import { SplineScene } from './ui/splite';
 import { Spotlight } from './ui/spotlight';
 
