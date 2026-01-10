@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 
 const apiKey = process.env.API_KEY;
@@ -12,8 +13,8 @@ const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 const getChatModel = (department: string, semester: string, subject?: string, useThinking: boolean = false) => {
   const subjectContext = subject ? `The student is currently asking about the subject: "${subject}".` : "The student is asking about general department topics.";
   
-  // Use gemini-3-pro-preview for thinking mode, otherwise default to flash
-  const model = useThinking ? 'gemini-3-pro-preview' : 'gemini-2.5-flash';
+  // Use gemini-3-pro-preview for thinking mode, otherwise gemini-3-flash-preview as requested
+  const model = useThinking ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
   
   // Configure thinking budget if enabled
   const thinkingConfig = useThinking ? { thinkingConfig: { thinkingBudget: 32768 } } : {};
