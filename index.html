@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
   <head>
@@ -145,7 +146,16 @@
                 800: '#27272a',
                 900: '#18181b', // Zinc 900
                 950: '#09090b', // Zinc 950 (Rich Black)
-              }
+               },
+              // For shadcn card
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
             },
             animation: {
               'float': 'float 6s ease-in-out infinite',
@@ -155,6 +165,7 @@
               'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'scale-in': 'scaleIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
               'shimmer': 'shimmer 2s linear infinite',
+              spotlight: "spotlight 2s ease .75s 1 forwards",
             },
             keyframes: {
               float: {
@@ -180,7 +191,17 @@
               shimmer: {
                 '0%': { backgroundPosition: '-1000px 0' },
                 '100%': { backgroundPosition: '1000px 0' },
-              }
+              },
+              spotlight: {
+                "0%": {
+                  opacity: "0",
+                  transform: "translate(-72%, -62%) scale(0.5)",
+                },
+                "100%": {
+                  opacity: "1",
+                  transform: "translate(-50%,-40%) scale(1)",
+                },
+              },
             },
           },
         },
@@ -368,6 +389,27 @@
       .animate-stagger-3 { animation-delay: 150ms; }
       .animate-stagger-4 { animation-delay: 200ms; }
       .animate-stagger-5 { animation-delay: 250ms; }
+
+      /* Loader for Spline */
+      .loader {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #FFF;
+        border-bottom-color: #FF3D00;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+      }
+
+      @keyframes rotation {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+      } 
     </style>
   <script type="importmap">
 {
@@ -378,7 +420,12 @@
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
     "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
-    "@emailjs/browser": "https://aistudiocdn.com/@emailjs/browser@^4.4.1"
+    "@emailjs/browser": "https://aistudiocdn.com/@emailjs/browser@^4.4.1",
+    "clsx": "https://aistudiocdn.com/clsx@^2.1.1",
+    "tailwind-merge": "https://aistudiocdn.com/tailwind-merge@^2.5.2",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^11.0.28",
+    "@splinetool/react-spline": "https://aistudiocdn.com/@splinetool/react-spline@^4.0.0",
+    "@splinetool/runtime": "https://aistudiocdn.com/@splinetool/runtime@^1.0.0"
   }
 }
 </script>
