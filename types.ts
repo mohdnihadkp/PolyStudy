@@ -1,3 +1,4 @@
+
 import { ReactNode } from 'react';
 
 export type ResourceType = 'pdf' | 'link';
@@ -82,6 +83,7 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   isThinking?: boolean;
+  groundingMetadata?: any;
 }
 
 // Bookmark Interface
