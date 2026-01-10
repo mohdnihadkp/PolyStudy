@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, Sparkles, AlertCircle, Brain, BookOpen, CheckCircle2, XCircle, ArrowRight, RotateCcw, Globe } from 'lucide-react';
+import { Send, Bot, Sparkles, AlertCircle, Brain, BookOpen, CheckCircle2, XCircle, ArrowRight, RotateCcw } from 'lucide-react';
 import { startChatSession, sendMessageToGemini, generateQuiz } from '../services/geminiService';
 import { ChatMessage, Quiz } from '../types';
 import { Chat, GenerateContentResponse } from '@google/genai';
@@ -90,16 +90,10 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
       
       let fullText = '';
       let isFirstChunk = true;
-      let groundingMetadata: any = null;
       
       for await (const chunk of streamResult) {
         const c = chunk as GenerateContentResponse;
         const text = c.text;
-        
-        // Capture grounding metadata if available (usually in one of the chunks)
-        if (c.candidates?.[0]?.groundingMetadata) {
-            groundingMetadata = c.candidates[0].groundingMetadata;
-        }
 
         if (text) {
           fullText += text;
@@ -123,17 +117,6 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
              );
           }
         }
-      }
-
-      // Update message with grounding metadata after stream completes
-      if (groundingMetadata) {
-          setMessages(prev => 
-            prev.map(msg => 
-                msg.id === modelMsgId 
-                    ? { ...msg, groundingMetadata } 
-                    : msg
-            )
-          );
       }
 
     } catch (err) {
@@ -331,30 +314,6 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
                     ) : (
                         <div className={`prose prose-sm max-w-none text-sm leading-loose ${msg.role === 'user' ? 'prose-invert' : 'dark:prose-invert'}`}>
                             <ReactMarkdown components={MarkdownComponents as any}>{msg.text}</ReactMarkdown>
-                            
-                            {/* Display Grounding Sources if Available */}
-                            {msg.groundingMetadata?.groundingChunks?.length > 0 && (
-                                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-neutral-500 mb-2 flex items-center gap-1">
-                                        <Globe className="w-3 h-3" /> Sources
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {msg.groundingMetadata.groundingChunks.map((chunk: any, idx: number) => (
-                                            chunk.web ? (
-                                                <a 
-                                                    key={idx} 
-                                                    href={chunk.web.uri} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className="text-xs bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-600 dark:hover:text-sky-400 transition-colors flex items-center gap-1 border border-slate-200 dark:border-white/5"
-                                                >
-                                                    {chunk.web.title}
-                                                </a>
-                                            ) : null
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                     </div>
