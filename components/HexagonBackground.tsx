@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { SplineScene } from './ui/splite';
 import { Spotlight } from './ui/spotlight';
 
 const HexagonBackground = () => {
-return (
-    <div className="fixed inset-0 z-[-1] bg-black/[0.96] overflow-hidden">
+  return (
+    <div className="fixed inset-0 z-[-1] bg-black overflow-hidden pointer-events-none">
       <Spotlight
         className="-top-40 left-0 md:left-60 md:-top-20"
         fill="white"
