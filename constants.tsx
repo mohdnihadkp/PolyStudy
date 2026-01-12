@@ -37,29 +37,64 @@ const createSubject = (id: string, title: string, semester: Semester, descriptio
 export const APP_NOTICES: AppNotice[] = [
   {
     id: 'n_1',
-    date: 'Oct 25, 2025',
-    title: '📝 Examination Timetable Released',
-    content: 'The official examination timetable for the upcoming semester has been released. Please check the drive link below to find your department schedule. Ensure you carry your hall tickets.',
+    date: 'Jan 01, 2026',
+    title: '👋 Welcome to PolyStudy',
+    content: 'Welcome to the new academic year. We have updated all study materials for Semester 3 and 5. If you find any broken links, please use the feedback form.',
     links: [
-        { label: 'Download Timetable', url: 'https://drive.google.com/...' },
-        { label: 'Exam Instructions', url: 'https://sbtet.kerala.gov.in/' }
+      { label: 'Message Personally', url: 'https://wa.me/qr/HQWL273HTEK4L1' },
+      { label: 'Instagram', url: 'https://www.instagram.com/mohdnihadkp?igsh=MWs3M2k1OXNlbTV5YQ==' }
+    ]
+  },
+  {
+    id: 'n_2',
+    date: 'Oct 25, 2025',
+    title: 'APJ Abdul Kalam Scholarship (APJAK)',
+    content: ' [Last Date to Apply: January 20, 2026] Applications are invited from eligible Polytechnic Diploma students for the APJ Abdul Kalam Scholarship 2025-26. Students belonging to minority communities who have secured admission on a merit basis can apply.',
+    links: [
+        { label: 'Apply Now', url: 'https://www.mwdscholarship.kerala.gov.in/' },
+        { label: 'Instructions(PDF)', url: 'https://www.mwdscholarship.kerala.gov.in/storage/guidelines/h02AiqhPvVlH21SXJwf5ZOcNveHf51M7I01Ti78f.pdf' }
     ],
     isNew: true
   },
   {
-    id: 'n_2',
-    date: 'Oct 20, 2025',
+    id: 'n_3',
+    date: 'Jan 01, 2026',
     title: '🚀 New Feature: Veo Animator',
     content: 'We have integrated Google Veo! You can now generate short AI videos from your images directly in the app. Check the menu to try it out.',
-    links: []
+    links: [
+      { label: 'Click', url: 'https://polystudy.vercel.app/' }
+    ]
   },
   {
-    id: 'n_3',
-    date: 'Oct 15, 2025',
-    title: '👋 Welcome to PolyStudy',
-    content: 'Welcome to the new academic year. We have updated all study materials for Semester 3 and 5. If you find any broken links, please use the feedback form.',
+    id: 'n_4',
+    date: 'Jan 31, 2026',
+    title: 'E-Grantz Postmatric Scholarship (OBC) 2025-26',
+    content: 'Applications are invited from eligible OBC students pursuing Diploma/Degree/PG/Professional courses for the E-Grantz Postmatric Scholarship 2025-26. This scheme provides financial assistance for educational expenses.',
     links: [
-      { label: 'Join WhatsApp Group', url: 'https://chat.whatsapp.com/...' }
+        { label: 'Apply Now', url: 'https://www.egrantz.kerala.gov.in/' },
+        { label: 'Instructions(PDF)', url: 'https://www.buddy4study.com/article/post-matric-scholarship' }
+    ],
+    isNew: true
+  },
+  {
+    id: 'n_5',
+    date: 'Jan 31, 2026',
+    title: 'Tata Capital Pankh Scholarship Program 2025-26',
+    content: 'Applications are invited for the Tata Capital Pankh Scholarship 2025-26, an initiative by Tata Capital to support the higher education of meritorious students from economically weaker sections.',
+    links: [
+        { label: 'Apply Now', url: 'https://www.buddy4study.com/page/the-tata-capital-pankh-scholarship-programme' },
+        { label: 'Instructions(PDF)', url: 'https://www.buddy4study.com/page/the-tata-capital-pankh-scholarship-programme' }
+    ],
+    isNew: true
+  },
+  {
+    id: 'n_6',
+    date: 'Dec 31, 2025',
+    title: 'HDFC Bank Parivartans ECSS Programme 2025-26',
+    content: 'Applications are invited for the HDFC Bank Parivartan’s ECSS Programme (School Students). This merit-cum-need based scholarship aims to support meritorious students belonging to underprivileged sections of society.',
+    links: [
+        { label: 'Apply Now', url: 'https://www.buddy4study.com/page/hdfc-bank-parivartans-ecss-programme' },
+        { label: 'Instructions(PDF)', url: 'https://www.buddy4study.com/page/hdfc-bank-parivartans-ecss-programme' }
     ]
   }
 ];
