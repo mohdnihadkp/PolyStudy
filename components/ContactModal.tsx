@@ -176,7 +176,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                     Direct email: mohdnihadkp@gmail.com
                     </p>
                 </form>
-                <div className="hidden md:flex justify-center w-full mt-4">
+                <div className="flex justify-center w-full mt-4">
                     <AdBanner format="leaderboard" />
                 </div>
             </div>
