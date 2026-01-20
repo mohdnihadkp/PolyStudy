@@ -20,7 +20,6 @@ import SubjectProgress from './components/SubjectProgress';
 import HexagonBackground from './components/HexagonBackground'; 
 import NoticesModal from './components/NoticesModal';
 import AboutModal from './components/AboutModal'; 
-import SplashScreen from './components/SplashScreen';
 import { DEPARTMENTS, SEMESTERS, APP_NOTICES } from './constants';
 import { Department, Semester, Subject, ResourceCategory, Resource, VideoLecture, BookmarkItem } from './types';
 import { Book, Video, Bot, GraduationCap, ArrowLeft, Layers, Calendar, FolderOpen, ChevronRight, FileText, ArrowRight, Zap, Hexagon, ExternalLink, CheckCircle2, Bookmark, AlertTriangle, MessageSquare, Sparkles, Github, Instagram, Facebook, Twitter, Linkedin, Phone, Bell } from 'lucide-react';
@@ -41,8 +40,7 @@ declare global {
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isAppLoading, setIsAppLoading] = useState(true);
-
+  
   // App State
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
   const [selectedSemester, setSelectedSemester] = useState<Semester | null>(null);
@@ -91,14 +89,6 @@ export default function App() {
       { text: "Quality means doing it right when no one is looking.", author: "Henry Ford" }
   ];
 
-  // --- LOADING SCREEN EFFECT ---
-  useEffect(() => {
-    // Force minimum 2.5s loading time for the splash screen
-    const timer = setTimeout(() => {
-      setIsAppLoading(false);
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
 
   // --- DYNAMIC SEO METADATA UPDATE (OPTIMIZED FOR KERALA) ---
   useEffect(() => {
@@ -741,10 +731,6 @@ export default function App() {
 
   const subjectVideos = selectedSubject ? (videosBySubject[selectedSubject.id] || []) : [];
 
-  if (isAppLoading) {
-    return <SplashScreen />;
-  }
-
   return (
     <div className="relative min-h-screen flex flex-col font-sans">
       <HexagonBackground />
@@ -846,10 +832,8 @@ export default function App() {
       )}
 
       <main className="relative z-10 flex-grow max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 transition-opacity duration-300">
-        {/* ... (Rest of the render logic remains unchanged) ... */}
         {isBookmarksView ? (
              <section className="animate-slide-up" aria-label="My Bookmarks">
-                 {/* ... Bookmarks content ... */}
                  <div className="flex items-center mb-8">
                     <button onClick={handleHomeClick} className="glass-button p-3 rounded-full mr-4" aria-label="Back">
                         <ArrowLeft className="w-5 h-5" />
@@ -990,7 +974,6 @@ export default function App() {
                 </div>
             </aside>
 
-            {/* Rest of the Home Page - truncated for brevity as logic is identical */}
             <div className="mt-16 w-full max-w-5xl mx-auto relative z-10 animate-fade-in-up delay-100">
                 <div className="flex items-center justify-center mb-6 space-x-2 opacity-80">
                     <div className="h-px w-12 bg-gradient-to-r from-transparent to-slate-400 dark:to-slate-500"></div>
@@ -1140,7 +1123,6 @@ export default function App() {
                     <Bot className="w-6 h-6" />
                  </button>
 
-                 {/* ... Subjects Grid ... */}
                  {filteredSubjects.length === 0 && filteredVideos.length === 0 ? (
                      <div className="text-center py-20 opacity-60">
                          <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1339,7 +1321,6 @@ export default function App() {
       </div>
 
       <footer className="relative mt-8">
-        {/* Footer content unchanged */}
         <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-slate-50 dark:to-black -translate-y-full pointer-events-none"></div>
         
         <div className="glass-panel mx-4 sm:mx-8 mb-8 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden border border-slate-200/60 dark:border-white/5 shadow-2xl bg-white/80 dark:bg-[#080808]/90">
