@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Calculator, Timer, FileEdit, Play, Pause, RotateCcw, Plus, Trash2, Save, Check, ListTodo, Circle, CheckCircle2, MoreHorizontal, Eraser, Delete, ChevronRight, History, Search, Bold, Italic, List, Code, AlignLeft, Type, Menu, Sidebar, Quote, Heading1, Heading2, Heading3, ArrowLeft } from 'lucide-react';
-import AdBanner from './AdBanner';
 
 interface StudyToolsModalProps {
   onClose: () => void;
@@ -102,17 +101,11 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
                 {activeTab === 'timer' && (
                     <div className="h-full overflow-y-auto p-4 md:p-8 custom-scrollbar">
                         <PomodoroTimer />
-                        <div className="flex justify-center mt-8">
-                            <AdBanner format="leaderboard" />
-                        </div>
                     </div>
                 )}
                 {activeTab === 'tasks' && (
                     <div className="h-full overflow-y-auto p-4 md:p-8 custom-scrollbar">
                         <TaskManager />
-                        <div className="flex justify-center mt-8">
-                            <AdBanner format="leaderboard" />
-                        </div>
                     </div>
                 )}
                 {activeTab === 'notes' && (
@@ -121,11 +114,6 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
                 {activeTab === 'calc' && (
                     <div className="h-full bg-[#1a1c20] flex flex-col items-center justify-center relative">
                         <ScientificCalculator />
-                        <div className="flex justify-center absolute bottom-4 left-0 right-0 z-20 pointer-events-none">
-                             <div className="pointer-events-auto">
-                                <AdBanner format="leaderboard" />
-                             </div>
-                        </div>
                     </div>
                 )}
             </div>
