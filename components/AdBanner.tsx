@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 
 interface AdBannerProps {
-  format?: 'banner' | 'native' | 'leaderboard'; // banner = 320x50, native = feed/box style, leaderboard = 728x90
+  format?: 'native' | 'leaderboard'; // 320x50 'banner' removed
   className?: string;
-  slot?: string; // Kept for backwards compatibility but not used
+  slot?: string; 
 }
 
 const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }) => {
@@ -15,11 +15,11 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
     // Clear container to prevent duplicate injections on re-renders
     containerRef.current.innerHTML = '';
 
-    if (format === 'banner') {
-      // 320x50 Banner (Code A)
+    if (format === 'leaderboard') {
+      // 728x90 Leaderboard (Iframe encapsulation for safety)
       const iframe = document.createElement('iframe');
-      iframe.style.width = '320px';
-      iframe.style.height = '50px';
+      iframe.style.width = '728px';
+      iframe.style.height = '90px';
       iframe.style.border = 'none';
       iframe.style.overflow = 'hidden';
       iframe.scrolling = 'no';
@@ -31,14 +31,14 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
         <body style="margin:0;padding:0;overflow:hidden;background:transparent;">
           <script type="text/javascript">
             atOptions = {
-              'key' : '4d14f8ed21408146f8235e7f187db494',
+              'key' : '3ce504c3e574a4c5abd28e98b3e0f102',
               'format' : 'iframe',
-              'height' : 50,
-              'width' : 320,
+              'height' : 90,
+              'width' : 728,
               'params' : {}
             };
           </script>
-          <script type="text/javascript" src="https://remotelydependedchance.com/4d14f8ed21408146f8235e7f187db494/invoke.js"></script>
+          <script type="text/javascript" src="https://remotelydependedchance.com/3ce504c3e574a4c5abd28e98b3e0f102/invoke.js"></script>
         </body>
         </html>
       `;
@@ -52,18 +52,8 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
         iframeDoc.close();
       }
 
-    } else if (format === 'leaderboard') {
-      // 728x90 Leaderboard Placeholder
-      // Note: Replace this with actual ad network code when available.
-      const div = document.createElement('div');
-      div.style.width = '728px';
-      div.style.height = '90px';
-      div.className = 'flex items-center justify-center bg-slate-100 dark:bg-white/5 border-2 border-dashed border-slate-300 dark:border-white/10 rounded-lg text-slate-400 dark:text-slate-500 font-bold text-sm tracking-widest uppercase';
-      div.innerText = 'Ad Space 728x90';
-      containerRef.current.appendChild(div);
-      
     } else {
-      // Native Banner (Code B)
+      // Native Banner
       const adDiv = document.createElement('div');
       adDiv.id = 'container-3d99cb72fd857aed0f3dd230c2761458';
       containerRef.current.appendChild(adDiv);
@@ -71,7 +61,7 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
       const script = document.createElement('script');
       script.async = true;
       script.dataset.cfasync = 'false';
-      script.src = 'https://pl28274651.effectivegatecpm.com/3d99cb72fd857aed0f3dd230c2761458/invoke.js';
+      script.src = 'https://remotelydependedchance.com/3d99cb72fd857aed0f3dd230c2761458/invoke.js';
       containerRef.current.appendChild(script);
     }
   }, [format]);
