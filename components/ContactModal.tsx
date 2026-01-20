@@ -1,6 +1,8 @@
+
 import React, { useState, useRef } from 'react';
 import { X, Send, Mail, User, MessageSquare, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import emailjs from '@emailjs/browser';
+import AdBanner from './AdBanner';
 
 interface ContactModalProps {
   onClose: () => void;
@@ -174,6 +176,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                     Direct email: mohdnihadkp@gmail.com
                     </p>
                 </form>
+                <div className="hidden md:flex justify-center w-full mt-4">
+                    <AdBanner format="leaderboard" />
+                </div>
             </div>
         )}
       </div>
