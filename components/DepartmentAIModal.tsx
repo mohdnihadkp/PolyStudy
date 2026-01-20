@@ -39,7 +39,7 @@ const DepartmentAIModal: React.FC<DepartmentAIModalProps> = ({ departmentName, s
             </button>
         </div>
 
-        <div className="hidden md:flex justify-center w-full bg-slate-50 dark:bg-[#050505] pt-2">
+        <div className="flex justify-center w-full bg-slate-50 dark:bg-[#050505] pt-2">
             <AdBanner format="leaderboard" />
         </div>
 
