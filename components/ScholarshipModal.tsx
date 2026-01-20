@@ -189,7 +189,7 @@ const ScholarshipModal: React.FC<ScholarshipModalProps> = ({ onClose }) => {
                         </div>
                     ))}
                 </div>
-                <div className="hidden md:flex justify-center w-full my-6">
+                <div className="flex justify-center w-full my-6">
                         <AdBanner format="leaderboard" />
                     </div>
                 </>  
