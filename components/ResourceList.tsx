@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Resource } from '../types';
 import { FileText, Link as LinkIcon, ExternalLink, Eye } from 'lucide-react';
+import AdBanner from './AdBanner';
 
 interface ResourceListProps {
   resources: Resource[];
@@ -29,6 +31,7 @@ const ResourceList: React.FC<ResourceListProps> = ({ resources, onView }) => {
   };
 
   return (
+   <>
     <div className="space-y-4">
       {resources.map((resource) => (
         <div 
@@ -54,6 +57,10 @@ const ResourceList: React.FC<ResourceListProps> = ({ resources, onView }) => {
         </div>
       ))}
     </div>
+    <div className="hidden md:flex justify-center w-full my-4">
+            <AdBanner format="leaderboard" />
+        </div>
+    </> 
   );
 };
 
