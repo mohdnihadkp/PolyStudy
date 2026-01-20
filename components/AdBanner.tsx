@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 interface AdBannerProps {
-  format?: 'native' | 'leaderboard'; // 320x50 'banner' removed
+  format?: 'native' | 'leaderboard';
   className?: string;
   slot?: string; 
 }
@@ -54,6 +54,8 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
 
     } else {
       // Native Banner
+      // Using a wrapper to ensure unique-ish behavior if possible, 
+      // though the script targets a specific ID.
       const adDiv = document.createElement('div');
       adDiv.id = 'container-3d99cb72fd857aed0f3dd230c2761458';
       containerRef.current.appendChild(adDiv);
@@ -66,14 +68,26 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
     }
   }, [format]);
 
+  // Height mapping for responsive containers to prevent layout shift/whitespace
+  const heightClass = format === 'leaderboard' 
+    ? 'h-[40px] sm:h-[68px] md:h-[90px]' // Scaled heights: 90*0.45, 90*0.75, 90*1
+    : 'min-h-[50px]'; // Native ads are dynamic
+
+  const scaleClass = format === 'leaderboard'
+    ? 'scale-[0.42] sm:scale-75 md:scale-100 origin-top' // Scale factors
+    : '';
+
   return (
-    <div className={`flex justify-center items-center my-4 ${className} animate-fade-in`}>
-      <div className="relative bg-slate-50 dark:bg-white/5 p-1 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm group">
+    <div className={`flex justify-center items-center my-4 w-full ${className} animate-fade-in`}>
+      <div className={`relative bg-slate-50 dark:bg-white/5 p-1 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm group ${heightClass} transition-all duration-300`}>
          {/* Subtle "Sponsored" Label */}
          <div className="absolute top-0 left-0 px-1.5 py-0.5 bg-slate-200 dark:bg-neutral-800 text-[8px] font-bold text-slate-500 dark:text-neutral-500 rounded-br-lg z-10 opacity-70 group-hover:opacity-100 transition-opacity">
             AD
          </div>
-         <div ref={containerRef} className="flex justify-center items-center min-h-[50px] min-w-[300px]" />
+         <div 
+            ref={containerRef} 
+            className={`flex justify-center items-start ${scaleClass}`}
+         />
       </div>
     </div>
   );
