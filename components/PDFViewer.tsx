@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Share2, Check, ExternalLink, Download, Loader2, FileText, Maximize2, Minimize2, RotateCw, AlertTriangle, Search, ZoomIn, ZoomOut, ChevronUp, ChevronDown, PenTool, ArrowUp, ArrowDown } from 'lucide-react';
-import AdBanner from './AdBanner';
+
 
 declare global {
   interface Window {
@@ -327,15 +328,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url, title, onClose }) => {
                 </iframe>
              </div>
         </div>
-
-        {/* Ad Banner (Hidden in fullscreen) */}
-        {!isFullscreen && (
-            <div className="bg-white dark:bg-[#080808] border-t border-black/5 dark:border-white/5 p-1 hidden md:block">
-                <div className="scale-75 origin-bottom">
-                    <AdBanner format="banner" className="!my-0" />
-                </div>
-            </div>
-        )}
       </div>
     </div>
   );
