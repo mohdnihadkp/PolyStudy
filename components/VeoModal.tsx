@@ -1,6 +1,8 @@
+
 import React, { useState, useRef } from 'react';
 import { X, Upload, Film, Loader2, Play, Download, Image as ImageIcon, Sparkles, AlertCircle, Wand2, RefreshCcw } from 'lucide-react';
 import { generateVeoVideo } from '../services/geminiService';
+import AdBanner from './AdBanner';
 
 interface VeoModalProps {
   onClose: () => void;
@@ -194,6 +196,9 @@ const VeoModal: React.FC<VeoModalProps> = ({ onClose }) => {
                 <p className="text-[10px] text-center text-slate-500">
                     Uses Google Veo model. Generation may take 1-2 minutes.
                 </p>
+                <div className="hidden md:flex justify-center w-full mt-2">
+                    <AdBanner format="leaderboard" />
+                </div>
             </div>
         </div>
 
