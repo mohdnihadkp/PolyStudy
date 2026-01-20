@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -16,7 +17,7 @@ const HexagonBackground: React.FC = () => {
     scene.background = new THREE.Color(0x020205); // Deep space black
     scene.fog = new THREE.FogExp2(0x020205, 0.002);
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
     camera.position.set(0, 0, 18);
 
     const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
@@ -142,41 +143,96 @@ const HexagonBackground: React.FC = () => {
     sun.position.set(20, 5, 5); // Far background, Top-Right
     scene.add(sun);
 
-    // D. Starfield
-    const starCount = 2000;
+    // D. Enhanced Starfield (Particle System with varying sizes and colors)
+    const starCount = 5000;
     const starGeo = new THREE.BufferGeometry();
-    const starPos = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
-    const color = new THREE.Color();
+    
+    const positions = new Float32Array(starCount * 3);
+    const colors = new Float32Array(starCount * 3);
+    const sizes = new Float32Array(starCount);
+    const shifts = new Float32Array(starCount);
 
-    for(let i = 0; i < starCount; i++) {
-        // Position
-        const x = (Math.random() - 0.5) * 600;
-        const y = (Math.random() - 0.5) * 600;
-        const z = (Math.random() - 0.5) * 600 - 100; // Push back
-        starPos[i*3] = x;
-        starPos[i*3+1] = y;
-        starPos[i*3+2] = z;
+    const starColor = new THREE.Color();
 
-        // Color (White, Blueish, Goldish)
-        const type = Math.random();
-        if (type > 0.9) color.setHex(0xaaaaff);
-        else if (type > 0.8) color.setHex(0xffddaa);
-        else color.setHex(0xffffff);
+    for (let i = 0; i < starCount; i++) {
+        // Spherical distribution
+        const r = 200 + Math.random() * 800; // Radius between 200 and 1000
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = r * Math.cos(phi);
 
-        starColors[i*3] = color.r;
-        starColors[i*3+1] = color.g;
-        starColors[i*3+2] = color.b;
+        // Colors
+        const rand = Math.random();
+        if (rand > 0.9) starColor.setHex(0x9bb0ff); // Blueish
+        else if (rand > 0.7) starColor.setHex(0xffedad); // Yellowish
+        else if (rand > 0.6) starColor.setHex(0xffa07a); // Reddish/Orange
+        else starColor.setHex(0xffffff); // White
+
+        colors[i * 3] = starColor.r;
+        colors[i * 3 + 1] = starColor.g;
+        colors[i * 3 + 2] = starColor.b;
+
+        // Size variation
+        sizes[i] = Math.random() * 2.0 + 0.5;
+
+        // Shift for twinkling animation
+        shifts[i] = Math.random() * Math.PI;
     }
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
 
-    const starMat = new THREE.PointsMaterial({
-        size: 0.2,
-        vertexColors: true,
+    starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    starGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    starGeo.setAttribute('shift', new THREE.BufferAttribute(shifts, 1));
+
+    const starVertexShader = `
+        attribute float size;
+        attribute float shift;
+        uniform float time;
+        varying vec3 vColor;
+        void main() {
+            vColor = color;
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            
+            // Perspective size attenuation
+            // Also animate size slightly for twinkling
+            float twinkle = sin(time * 1.5 + shift) * 0.3 + 0.9;
+            gl_PointSize = size * twinkle * (300.0 / -mvPosition.z);
+            
+            gl_Position = projectionMatrix * mvPosition;
+        }
+    `;
+
+    const starFragmentShader = `
+        varying vec3 vColor;
+        void main() {
+            // Circular particle with soft edge
+            float d = distance(gl_PointCoord, vec2(0.5));
+            if (d > 0.5) discard;
+            
+            // Gradient opacity
+            float alpha = 1.0 - smoothstep(0.0, 0.5, d);
+            
+            gl_FragColor = vec4(vColor, alpha);
+        }
+    `;
+
+    const starUniforms = {
+        time: { value: 0 }
+    };
+
+    const starMat = new THREE.ShaderMaterial({
+        uniforms: starUniforms,
+        vertexShader: starVertexShader,
+        fragmentShader: starFragmentShader,
         transparent: true,
-        opacity: 0.8,
+        vertexColors: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
     });
+
     const stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
 
@@ -215,14 +271,25 @@ const HexagonBackground: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     // --- 7. ANIMATION LOOP ---
+    const clock = new THREE.Clock();
+
     const animate = () => {
         requestAnimationFrame(animate);
+
+        const delta = clock.getDelta();
+        const elapsedTime = clock.getElapsedTime();
+
+        // Update Star Uniforms
+        starUniforms.time.value = elapsedTime;
 
         // Slow independent rotations
         earth.rotation.y += 0.0005; // Day/Night cycle
         clouds.rotation.y += 0.0007; 
         moonPivot.rotation.y += 0.002; // Moon Orbit
         moon.rotation.y += 0.01; // Moon Spin
+
+        // Slight starfield rotation
+        stars.rotation.y += 0.0001;
 
         controls.update();
         composer.render();
