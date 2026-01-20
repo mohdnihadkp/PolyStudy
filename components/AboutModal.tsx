@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { X, Hexagon, Heart, Globe, Shield, Zap, Code } from 'lucide-react';
+import AdBanner from './AdBanner';
 
 interface AboutModalProps {
   onClose: () => void;
@@ -68,7 +70,11 @@ const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                             <p className="text-xs text-slate-500 dark:text-neutral-400">Built by students, for students. Open for contributions.</p>
                         </div>
                     </div>
-
+    
+                    <div className="hidden md:flex justify-center w-full my-6">
+                        <AdBanner format="leaderboard" />
+                    </div>
+                    
                     <div className="text-center pt-6 border-t border-slate-100 dark:border-white/5">
                         <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mb-4">Developed By</p>
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-full">
