@@ -747,9 +747,9 @@ export default function App() {
     <div className="relative min-h-screen flex flex-col font-sans">
       <HexagonBackground />
 
-      {/* Top Leaderboard Ad (Desktop Only) */}
-      <div className="hidden md:block w-full z-40 relative">
-          <AdBanner format="leaderboard" className="mb-2 mt-4" />
+     {/* Top Leaderboard Ad (Desktop Only) */}
+      <div className="hidden md:flex justify-center w-full z-40 relative my-4">
+          <AdBanner format="leaderboard" />
       </div>
 
       <Header 
@@ -1333,8 +1333,8 @@ export default function App() {
          )}
       </main>
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 mb-8 mt-12">
-           <AdBanner />
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 mb-4 mt-8 hidden md:flex justify-center">
+           <AdBanner format="leaderboard" />
       </div>
 
       <footer className="relative mt-8">
