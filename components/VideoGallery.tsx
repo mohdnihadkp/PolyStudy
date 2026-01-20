@@ -153,7 +153,7 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ videos, onPlay, onToggleBoo
         );
       })}
     </div>
-    <div className="hidden md:flex justify-center w-full my-4">
+    <div className="flex justify-center w-full my-4">
             <AdBanner format="leaderboard" />
         </div>
     </>
