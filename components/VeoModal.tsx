@@ -196,7 +196,7 @@ const VeoModal: React.FC<VeoModalProps> = ({ onClose }) => {
                 <p className="text-[10px] text-center text-slate-500">
                     Uses Google Veo model. Generation may take 1-2 minutes.
                 </p>
-                <div className="hidden md:flex justify-center w-full mt-2">
+                <div className="flex justify-center w-full mt-2">
                     <AdBanner format="leaderboard" />
                 </div>
             </div>
