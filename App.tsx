@@ -734,7 +734,12 @@ export default function App() {
   return (
     <div className="relative min-h-screen flex flex-col font-sans">
       <HexagonBackground />
-      
+
+      {/* Top Leaderboard Ad (Desktop Only) */}
+      <div className="hidden md:block w-full z-40 relative">
+          <AdBanner format="leaderboard" className="mb-2 mt-4" />
+      </div>
+
       <Header 
         onHomeClick={handleHomeClick} 
         isHome={!selectedDept && !isBookmarksView} 
