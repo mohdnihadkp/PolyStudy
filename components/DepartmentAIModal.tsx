@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { X, GraduationCap } from 'lucide-react';
 import AITutor from './AITutor';
+import AdBanner from './AdBanner';
 
 interface DepartmentAIModalProps {
   departmentName: string;
@@ -35,6 +37,10 @@ const DepartmentAIModal: React.FC<DepartmentAIModalProps> = ({ departmentName, s
             >
                 <X className="w-6 h-6" />
             </button>
+        </div>
+
+        <div className="hidden md:flex justify-center w-full bg-slate-50 dark:bg-[#050505] pt-2">
+            <AdBanner format="leaderboard" />
         </div>
 
         <div className="flex-1 overflow-hidden p-0">
