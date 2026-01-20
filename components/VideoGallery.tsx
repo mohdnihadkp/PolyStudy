@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { VideoLecture } from '../types';
 import { Play, Clock, Bookmark, ListVideo, Layers, PlaySquare } from 'lucide-react';
+import AdBanner from './AdBanner';
 
 interface VideoGalleryProps {
   videos: VideoLecture[];
@@ -23,6 +25,7 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ videos, onPlay, onToggleBoo
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
       {videos.map((video) => {
         const bookmarked = isBookmarked(video.id);
@@ -150,6 +153,10 @@ const VideoGallery: React.FC<VideoGalleryProps> = ({ videos, onPlay, onToggleBoo
         );
       })}
     </div>
+    <div className="hidden md:flex justify-center w-full my-4">
+            <AdBanner format="leaderboard" />
+        </div>
+    </>
   );
 };
 
