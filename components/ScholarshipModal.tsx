@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { X, Award, Search, Calendar, DollarSign, ExternalLink, Filter, ChevronRight, Tag } from 'lucide-react';
 import { SCHOLARSHIPS } from '../constants';
 import { ScholarshipPost } from '../types';
+import AdBanner from './AdBanner';
 
 interface ScholarshipModalProps {
   onClose: () => void;
@@ -93,6 +95,7 @@ const ScholarshipModal: React.FC<ScholarshipModalProps> = ({ onClose }) => {
                     <p className="font-bold">No scholarships found</p>
                 </div>
             ) : (
+                <>
                 <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
                     {filteredScholarships.map(post => (
                         <div 
@@ -186,6 +189,10 @@ const ScholarshipModal: React.FC<ScholarshipModalProps> = ({ onClose }) => {
                         </div>
                     ))}
                 </div>
+                <div className="hidden md:flex justify-center w-full my-6">
+                        <AdBanner format="leaderboard" />
+                    </div>
+                </>  
             )}
         </div>
       </div>
