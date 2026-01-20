@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 interface AdBannerProps {
-  format?: 'banner' | 'native'; // banner = 320x50, native = feed/box style
+  format?: 'banner' | 'native' | 'leaderboard'; // banner = 320x50, native = feed/box style, leaderboard = 728x90
   className?: string;
   slot?: string; // Kept for backwards compatibility but not used
 }
@@ -17,7 +17,6 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
 
     if (format === 'banner') {
       // 320x50 Banner (Code A)
-      // Uses document.write, so we must sandbox it in an iframe to work safely in React.
       const iframe = document.createElement('iframe');
       iframe.style.width = '320px';
       iframe.style.height = '50px';
@@ -46,7 +45,6 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
 
       containerRef.current.appendChild(iframe);
       
-      // Write content to iframe safely
       const iframeDoc = iframe.contentWindow?.document;
       if (iframeDoc) {
         iframeDoc.open();
@@ -54,9 +52,18 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
         iframeDoc.close();
       }
 
+    } else if (format === 'leaderboard') {
+      // 728x90 Leaderboard Placeholder
+      // Note: Replace this with actual ad network code when available.
+      const div = document.createElement('div');
+      div.style.width = '728px';
+      div.style.height = '90px';
+      div.className = 'flex items-center justify-center bg-slate-100 dark:bg-white/5 border-2 border-dashed border-slate-300 dark:border-white/10 rounded-lg text-slate-400 dark:text-slate-500 font-bold text-sm tracking-widest uppercase';
+      div.innerText = 'Ad Space 728x90';
+      containerRef.current.appendChild(div);
+      
     } else {
       // Native Banner (Code B)
-      // This targets a specific DIV ID. We create the div and inject the script.
       const adDiv = document.createElement('div');
       adDiv.id = 'container-3d99cb72fd857aed0f3dd230c2761458';
       containerRef.current.appendChild(adDiv);
