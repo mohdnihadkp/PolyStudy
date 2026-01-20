@@ -747,8 +747,8 @@ export default function App() {
     <div className="relative min-h-screen flex flex-col font-sans">
       <HexagonBackground />
 
-     {/* Top Leaderboard Ad (Desktop Only) */}
-      <div className="hidden md:flex justify-center w-full z-40 relative my-4">
+     {/* Top Leaderboard Ad (Responsive: scales on mobile) */}
+      <div className="flex justify-center w-full z-40 relative my-2 sm:my-4">
           <AdBanner format="leaderboard" />
       </div>
 
@@ -962,6 +962,11 @@ export default function App() {
                   ))}
                 </div>
             </section>
+
+            {/* Native Ad Placement */}
+            <div className="w-full max-w-4xl mx-auto my-8 px-2">
+                <AdBanner format="native" />
+            </div>
 
             <aside className="mt-8 max-w-4xl mx-auto" aria-label="Latest Kerala Diploma News">
                 <div className="glass-panel p-6 rounded-2xl border border-sky-100 dark:border-white/5 bg-gradient-to-r from-sky-50 to-white dark:from-[#0a0a0a] dark:to-black">
@@ -1333,7 +1338,7 @@ export default function App() {
          )}
       </main>
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 mb-4 mt-8 hidden md:flex justify-center">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 mb-4 mt-8 flex justify-center">
            <AdBanner format="leaderboard" />
       </div>
 
