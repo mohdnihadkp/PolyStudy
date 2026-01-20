@@ -57,7 +57,7 @@ const ResourceList: React.FC<ResourceListProps> = ({ resources, onView }) => {
         </div>
       ))}
     </div>
-    <div className="hidden md:flex justify-center w-full my-4">
+    <div className="flex justify-center w-full my-4">
             <AdBanner format="leaderboard" />
         </div>
     </> 
