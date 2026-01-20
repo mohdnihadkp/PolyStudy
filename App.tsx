@@ -89,6 +89,18 @@ export default function App() {
       { text: "Quality means doing it right when no one is looking.", author: "Henry Ford" }
   ];
 
+   // --- SOCIAL BAR AD INJECTION ---
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://remotelydependedchance.com/f7/04/cd/f704cd9f226dfbb6e0274063024d326d.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // Optional cleanup if necessary, though social bars usually persist
+      // document.body.removeChild(script);
+    };
+  }, []);
 
   // --- DYNAMIC SEO METADATA UPDATE (OPTIMIZED FOR KERALA) ---
   useEffect(() => {
