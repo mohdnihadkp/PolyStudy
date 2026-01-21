@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 
 const apiKey = process.env.API_KEY;
@@ -111,79 +112,70 @@ export const generateQuiz = async (subjectName: string, difficulty: 'easy' | 'me
         console.error("Error generating quiz:", error);
         throw error;
     }
-}
+};
 
-// --- VEO VIDEO GENERATION ---
-
-export const generateVeoVideo = async (
-  imageFile: File, 
-  prompt: string, 
-  aspectRatio: '16:9' | '9:16'
-): Promise<string> => {
-    // 1. Mandatory API Key Selection for Veo
-    if (window.aistudio && window.aistudio.hasSelectedApiKey) {
-        const hasKey = await window.aistudio.hasSelectedApiKey();
-        if (!hasKey) {
-            await window.aistudio.openSelectKey();
-        }
+export const generateVeoVideo = async (file: File, prompt: string, aspectRatio: '16:9' | '9:16') => {
+  // Check for API key selection support (needed for IDX/Project IDX environments)
+  if (typeof window !== 'undefined' && (window as any).aistudio) {
+    const aistudio = (window as any).aistudio;
+    if (!await aistudio.hasSelectedApiKey()) {
+         await aistudio.openSelectKey();
     }
+  }
 
-    // 2. Convert Image to Base64
-    const base64Image = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = reader.result as string;
-            // Strip the data url prefix (e.g., "data:image/png;base64,")
-            const data = result.split(',')[1]; 
-            resolve(data);
-        };
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(imageFile);
-    });
+  // Create a new client instance to ensure we use the latest API key (from selection if applicable)
+  const currentApiKey = process.env.API_KEY || '';
+  const aiClient = new GoogleGenAI({ apiKey: currentApiKey });
 
-    // 3. Create a NEW instance to pick up the potentially newly selected key
-    const currentApiKey = process.env.API_KEY || '';
-    const freshAi = new GoogleGenAI({ apiKey: currentApiKey });
+  // Convert File to base64
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // remove data prefix (e.g. data:image/png;base64,)
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
-    try {
-        // 4. Start Video Generation Operation
-        let operation = await freshAi.models.generateVideos({
-            model: 'veo-3.1-fast-generate-preview',
-            prompt: prompt || "Animate this image cinematically",
-            image: {
-                imageBytes: base64Image,
-                mimeType: imageFile.type,
-            },
-            config: {
-                numberOfVideos: 1,
-                resolution: '720p',
-                aspectRatio: aspectRatio
-            }
-        });
-
-        // 5. Poll for completion
-        while (!operation.done) {
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Poll every 5 seconds
-            operation = await freshAi.operations.getVideosOperation({ operation: operation });
-        }
-
-        const videoUri = operation.response?.generatedVideos?.[0]?.video?.uri;
-        if (!videoUri) throw new Error("No video URI returned from Veo.");
-
-        // 6. Download the video bytes (Requires API key appended)
-        const response = await fetch(`${videoUri}&key=${currentApiKey}`);
-        if (!response.ok) throw new Error("Failed to download generated video.");
-        
-        const blob = await response.blob();
-        return URL.createObjectURL(blob);
-
-    } catch (error: any) {
-        // Handle "Requested entity was not found" by resetting key
-        if (error.message?.includes("Requested entity was not found") && window.aistudio) {
-             await window.aistudio.openSelectKey();
-             throw new Error("API Key session invalid. Please select your key again and retry.");
-        }
-        console.error("Veo Generation Error:", error);
-        throw error;
+  // Call the Veo model
+  let operation = await aiClient.models.generateVideos({
+    model: 'veo-3.1-fast-generate-preview',
+    prompt: prompt || 'Animate this image', // Prompt is required/recommended
+    image: {
+        imageBytes: base64Data,
+        mimeType: file.type,
+    },
+    config: {
+      numberOfVideos: 1,
+      resolution: '720p',
+      aspectRatio: aspectRatio,
     }
+  });
+
+  // Poll for completion (Veo generation takes time)
+  while (!operation.done) {
+    await new Promise(resolve => setTimeout(resolve, 10000)); // 10s poll interval
+    operation = await aiClient.operations.getVideosOperation({operation: operation});
+  }
+
+  if (operation.error) {
+    throw new Error(`Video generation failed: ${operation.error.message}`);
+  }
+  
+  const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+  if (!downloadLink) {
+    throw new Error("No video URI returned from generation.");
+  }
+
+  // Fetch the actual video content. Note: API Key must be appended.
+  const videoRes = await fetch(`${downloadLink}&key=${currentApiKey}`);
+  if (!videoRes.ok) {
+    throw new Error("Failed to download generated video.");
+  }
+  
+  const videoBlob = await videoRes.blob();
+  return URL.createObjectURL(videoBlob);
 };
