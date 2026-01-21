@@ -10,173 +10,125 @@ const HexagonBackground: React.FC = () => {
 
     // --- SCENE SETUP ---
     const scene = new THREE.Scene();
-    // Deep space dark background matching the theme
-    scene.background = new THREE.Color(0x020205);
-    scene.fog = new THREE.FogExp2(0x020205, 0.001);
+    scene.background = new THREE.Color(0x000000);
+    scene.fog = new THREE.FogExp2(0x000000, 0.002);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 50;
+    camera.position.z = 40;
+    camera.position.y = 10;
+    camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     mountRef.current.appendChild(renderer.domElement);
 
-    // --- PARTICLE SYSTEM (STARFIELD) ---
-    const starCount = 6000;
-    const starGeo = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
-    const starSizes = new Float32Array(starCount);
+    // --- LIGHTING ---
+    const ambientLight = new THREE.AmbientLight(0x333333);
+    scene.add(ambientLight);
 
-    const color1 = new THREE.Color(0xffffff); // White
-    const color2 = new THREE.Color(0xaaccff); // Blue-ish
-    const color3 = new THREE.Color(0xffddaa); // Warm/Yellow-ish
+    const sunLight = new THREE.PointLight(0xffaa00, 2, 300);
+    sunLight.position.set(0, 0, 0);
+    scene.add(sunLight);
 
-    for (let i = 0; i < starCount; i++) {
-        // Cubic distribution for density near center
-        const r = 400 * Math.cbrt(Math.random()); 
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
+    // --- OBJECTS ---
 
-        const x = r * Math.sin(phi) * Math.cos(theta);
-        const y = r * Math.sin(phi) * Math.sin(theta);
-        const z = r * Math.cos(phi);
-
-        starPositions[i * 3] = x;
-        starPositions[i * 3 + 1] = y;
-        starPositions[i * 3 + 2] = z;
-
-        // Randomly assign colors
-        const rand = Math.random();
-        let chosenColor;
-        if (rand > 0.9) chosenColor = color2;
-        else if (rand > 0.7) chosenColor = color3;
-        else chosenColor = color1;
-
-        starColors[i * 3] = chosenColor.r;
-        starColors[i * 3 + 1] = chosenColor.g;
-        starColors[i * 3 + 2] = chosenColor.b;
-
-        // Random Size
-        starSizes[i] = Math.random() * 2;
-    }
-
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-    starGeo.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
-
-    // Custom Shader Material for Twinkling Stars
-    const starMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            time: { value: 0 },
-            pixelRatio: { value: renderer.getPixelRatio() }
-        },
-        vertexShader: `
-            attribute float size;
-            attribute vec3 color;
-            varying vec3 vColor;
-            uniform float time;
-            uniform float pixelRatio;
-            
-            void main() {
-                vColor = color;
-                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                
-                // Twinkle effect based on position and time
-                float twinkle = sin(time * 2.0 + position.x * 0.05 + position.z * 0.05) * 0.5 + 0.5;
-                float finalSize = size * (0.8 + 0.4 * twinkle);
-
-                gl_PointSize = finalSize * pixelRatio * (300.0 / -mvPosition.z);
-                gl_Position = projectionMatrix * mvPosition;
-            }
-        `,
-        fragmentShader: `
-            varying vec3 vColor;
-            void main() {
-                // Circular soft particle
-                float d = distance(gl_PointCoord, vec2(0.5));
-                if (d > 0.5) discard;
-                
-                // Soft edge glow
-                float alpha = 1.0 - smoothstep(0.3, 0.5, d);
-                gl_FragColor = vec4(vColor, alpha);
-            }
-        `,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
+    // 1. Sun
+    const sunGeometry = new THREE.SphereGeometry(5, 32, 32);
+    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffdd00 });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    
+    // Sun Glow (Sprite)
+    const spriteMaterial = new THREE.SpriteMaterial({ 
+        map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/glow.png'), 
+        color: 0xffaa00, 
+        transparent: true, 
+        blending: THREE.AdditiveBlending 
     });
+    const sunGlow = new THREE.Sprite(spriteMaterial);
+    sunGlow.scale.set(25, 25, 1.0);
+    sun.add(sunGlow);
+    scene.add(sun);
 
-    const stars = new THREE.Points(starGeo, starMaterial);
+    // 2. Earth System (Group)
+    const earthOrbitGroup = new THREE.Group();
+    scene.add(earthOrbitGroup);
+
+    // Earth
+    const earthGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+    const earthMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0x2233ff, 
+        emissive: 0x112244,
+        specular: 0x111111,
+        shininess: 10
+    });
+    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+    earth.position.x = 20; // Distance from Sun
+    earthOrbitGroup.add(earth);
+
+    // 3. Moon System (Group child of Earth)
+    const moonOrbitGroup = new THREE.Group();
+    earth.add(moonOrbitGroup);
+
+    // Moon
+    const moonGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+    const moonMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
+    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+    moon.position.x = 3.5; // Distance from Earth
+    moonOrbitGroup.add(moon);
+
+    // --- STARS ---
+    const starGeometry = new THREE.BufferGeometry();
+    const starCount = 3000;
+    const starPositions = new Float32Array(starCount * 3);
+    for(let i=0; i<starCount*3; i++) {
+        starPositions[i] = (Math.random() - 0.5) * 400;
+    }
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true, opacity: 0.8 });
+    const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // --- CENTRAL GEOMETRY (The "Poly" Theme) ---
-    // A subtle wireframe icosahedron rotating slowly
-    const geoGeometry = new THREE.IcosahedronGeometry(12, 1);
-    const geoMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0x0ea5e9, // Sky blue
-        wireframe: true, 
-        transparent: true, 
-        opacity: 0.05 
-    });
-    const centralGeo = new THREE.Mesh(geoGeometry, geoMaterial);
-    scene.add(centralGeo);
-
-    // --- ANIMATION LOOP ---
-    const clock = new THREE.Clock();
-    let mouseX = 0;
-    let mouseY = 0;
-
+    // --- ANIMATION ---
     const animate = () => {
-        const time = clock.getElapsedTime();
-        
-        // Update Uniforms
-        starMaterial.uniforms.time.value = time;
+        requestAnimationFrame(animate);
 
-        // Slow cinematic rotation
-        stars.rotation.y = time * 0.03;
-        centralGeo.rotation.x = time * 0.05;
-        centralGeo.rotation.y = time * 0.1;
-
-        // Subtle Mouse Parallax
-        const targetX = (mouseX - window.innerWidth / 2) * 0.0005;
-        const targetY = (mouseY - window.innerHeight / 2) * 0.0005;
+        // Rotations
+        sun.rotation.y += 0.002;
         
-        scene.rotation.x += 0.05 * (targetY - scene.rotation.x);
-        scene.rotation.y += 0.05 * (targetX - scene.rotation.y);
+        // Orbits
+        earthOrbitGroup.rotation.y += 0.005; // Earth around Sun
+        earth.rotation.y += 0.02; // Earth axis rotation
+        
+        moonOrbitGroup.rotation.y += 0.03; // Moon around Earth
+        
+        // Stars slow rotation
+        stars.rotation.y -= 0.0002;
 
         renderer.render(scene, camera);
-        requestAnimationFrame(animate);
     };
 
     const handleResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        starMaterial.uniforms.pixelRatio.value = renderer.getPixelRatio();
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
     };
 
     window.addEventListener('resize', handleResize);
-    window.addEventListener('mousemove', handleMouseMove);
     animate();
 
     return () => {
         window.removeEventListener('resize', handleResize);
-        window.removeEventListener('mousemove', handleMouseMove);
         if (mountRef.current) {
             mountRef.current.removeChild(renderer.domElement);
         }
         renderer.dispose();
-        starGeo.dispose();
-        starMaterial.dispose();
-        geoGeometry.dispose();
-        geoMaterial.dispose();
+        sunGeometry.dispose();
+        sunMaterial.dispose();
+        earthGeometry.dispose();
+        earthMaterial.dispose();
+        moonGeometry.dispose();
+        moonMaterial.dispose();
     };
   }, []);
 
@@ -190,7 +142,7 @@ const HexagonBackground: React.FC = () => {
             width: '100%', 
             height: '100%', 
             zIndex: -1, 
-            background: '#020205',
+            background: '#000000',
             pointerEvents: 'none'
         }} 
     />
