@@ -1,78 +1,75 @@
 
 import React from 'react';
-import { X, ExternalLink, Calendar, BellRing } from 'lucide-react';
-import { APP_NOTICES } from '../constants';
+import { X, Hexagon, Globe, Code, Heart, Layers } from 'lucide-react';
 
-interface NoticesModalProps {
+interface AboutModalProps {
   onClose: () => void;
 }
 
-const NoticesModal: React.FC<NoticesModalProps> = ({ onClose }) => {
+const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 backdrop-blur-sm bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 backdrop-blur-md bg-black/80" onClick={onClose}>
       <div 
-        className="glass-panel w-full max-w-2xl max-h-[85vh] flex flex-col rounded-3xl bg-white/90 dark:bg-black/80 border border-slate-200 dark:border-white/10 shadow-2xl relative overflow-hidden animate-scale-in"
+        className="glass-panel w-full max-w-md rounded-[2.5rem] bg-white dark:bg-[#0a0a0a] border border-white/20 shadow-2xl overflow-hidden relative animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/5">
-            <div className="flex items-center gap-3">
-                <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl">
-                    <BellRing className="w-6 h-6" />
-                </div>
-                <div>
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white">Notice Board</h2>
-                    <p className="text-xs text-slate-500 dark:text-neutral-400 font-bold">Latest Updates from PolyStudy</p>
+        <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-black/5 dark:bg-white/10 text-slate-500 dark:text-white hover:rotate-90 transition-all z-20"
+        >
+            <X className="w-5 h-5" />
+        </button>
+
+        {/* Profile Header */}
+        <div className="relative pt-12 pb-8 px-6 bg-gradient-to-b from-sky-500/10 to-transparent flex flex-col items-center text-center">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 p-1 shadow-xl mb-4">
+                <div className="w-full h-full bg-white dark:bg-black rounded-full flex items-center justify-center">
+                    <Hexagon className="w-10 h-10 text-sky-600 dark:text-sky-400" />
                 </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors">
-                <X className="w-6 h-6 text-slate-500 dark:text-white" />
-            </button>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">PolyStudy</h2>
+            <p className="text-sm font-bold text-slate-500 dark:text-neutral-400">Academic Companion v2.5</p>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-            <div className="relative border-l-2 border-slate-200 dark:border-white/10 ml-3 space-y-8">
-                {APP_NOTICES.map((notice, idx) => (
-                    <div key={notice.id} className="relative pl-8 group">
-                        {/* Timeline Dot */}
-                        <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white dark:border-black ${notice.isNew ? 'bg-red-500 animate-pulse' : 'bg-slate-300 dark:bg-neutral-600'}`}></div>
-                        
-                        <div className="flex flex-col gap-1 mb-2">
-                            <span className="flex items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                <Calendar className="w-3 h-3 mr-1" />
-                                {notice.date}
-                                {notice.isNew && (
-                                    <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full">New</span>
-                                )}
-                            </span>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-sky-500 transition-colors">
-                                {notice.title}
-                            </h3>
-                        </div>
-                        
-                        <div className="glass-panel p-4 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 text-sm leading-relaxed text-slate-600 dark:text-neutral-300">
-                            {notice.content}
-                        </div>
+        {/* Developer Section */}
+        <div className="px-8 pb-8 space-y-6">
+            <div className="text-center">
+                <p className="text-sm text-slate-600 dark:text-neutral-300 leading-relaxed font-medium">
+                    Built to democratize education for Kerala Polytechnic students with premium, open-source resources.
+                </p>
+            </div>
 
-                        {notice.links && notice.links.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {notice.links.map((link, lIdx) => (
-                                    <a 
-                                        key={lIdx}
-                                        href={link.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center px-3 py-1.5 rounded-lg bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 text-xs font-bold hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
-                                    >
-                                        <ExternalLink className="w-3 h-3 mr-1.5" />
-                                        {link.label}
-                                    </a>
-                                ))}
-                            </div>
-                        )}
+            <div className="border-t border-slate-100 dark:border-white/10 pt-6">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-4">Developed By</p>
+                
+                <a 
+                    href="https://mohdnihadkp.netlify.app"
+                    target="_blank"
+                    rel="noopener noreferrer" 
+                    className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group cursor-pointer border border-slate-100 dark:border-white/5"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-black dark:bg-white rounded-lg text-white dark:text-black">
+                            <Code className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="font-bold text-slate-900 dark:text-white">Mohammed Nihad KP</h3>
+                            <p className="text-xs text-slate-500 dark:text-neutral-400">Full Stack Developer</p>
+                        </div>
                     </div>
-                ))}
+                    <Globe className="w-5 h-5 text-slate-400 group-hover:text-sky-500 transition-colors" />
+                </a>
+            </div>
+
+            <div className="flex justify-center gap-4 text-slate-400 pt-2">
+                <div className="flex flex-col items-center">
+                    <Heart className="w-5 h-5 text-red-500 mb-1" />
+                    <span className="text-[10px] font-bold">Open Source</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <Layers className="w-5 h-5 text-indigo-500 mb-1" />
+                    <span className="text-[10px] font-bold">React + Three.js</span>
+                </div>
             </div>
         </div>
       </div>
@@ -80,4 +77,4 @@ const NoticesModal: React.FC<NoticesModalProps> = ({ onClose }) => {
   );
 };
 
-export default NoticesModal;
+export default AboutModal;
