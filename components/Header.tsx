@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Sun, Moon, X, Menu, Home, RefreshCw, Bookmark, Hexagon, LayoutGrid, Award, School, BookOpen, ChevronRight, Film, Calculator, Bell, NotebookPen, Info, MessageSquare } from 'lucide-react';
+import { Search, Sun, Moon, X, Menu, Home, Bookmark, Hexagon, LayoutGrid, Award, NotebookPen, MessageSquare, Info } from 'lucide-react';
 import { APP_NOTICES } from '../constants';
 
 interface HeaderProps {
@@ -9,11 +9,9 @@ interface HeaderProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
   onSearch: (query: string) => void;
-  onSyncClick: () => void;
   onBookmarksClick: () => void;
   onScholarshipsClick: () => void;
-  onVeoClick: () => void;
-  onToolsClick: () => void;
+  onFacilitiesClick: () => void;
   onNoticesClick: () => void;
   onAboutClick: () => void;
   onContactClick: () => void;
@@ -21,15 +19,12 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ 
   onHomeClick, 
-  isHome, 
   isDarkMode, 
   toggleTheme, 
   onSearch, 
-  onSyncClick,
   onBookmarksClick,
   onScholarshipsClick,
-  onVeoClick,
-  onToolsClick,
+  onFacilitiesClick,
   onNoticesClick,
   onAboutClick,
   onContactClick
@@ -75,7 +70,6 @@ const Header: React.FC<HeaderProps> = ({
             </div>
             {subLabel && <p className="text-xs text-slate-400 dark:text-neutral-500 font-medium mt-0.5 truncate transition-colors group-hover:text-slate-500 dark:group-hover:text-neutral-400">{subLabel}</p>}
         </div>
-        {!disabled && <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-sky-500 transition-all ml-2 flex-shrink-0 group-hover:translate-x-1" />}
     </button>
   );
 
@@ -178,21 +172,14 @@ const Header: React.FC<HeaderProps> = ({
                 title="Notices"
                 aria-label="View notices"
             >
-                <Bell className={`w-5 h-5 ${hasNewNotices ? 'animate-swing' : ''}`} />
+                {/* Bell Icon without animation */}
+                <div className="w-5 h-5 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-bell ${hasNewNotices ? 'animate-swing' : ''}`}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                </div>
                 {/* Notification Badge */}
                 {hasNewNotices && (
                     <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white dark:border-black"></span>
                 )}
-            </button>
-
-            {/* Study Tools Button */}
-            <button 
-                onClick={onToolsClick}
-                className="glass-button p-3 rounded-full hover:text-sky-500 dark:hover:text-sky-400 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 hover:scale-105 active:scale-95 transition-all"
-                title="Study Tools"
-                aria-label="Open study tools"
-            >
-                <Calculator className="w-5 h-5" />
             </button>
 
             <button 
@@ -240,7 +227,7 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
                 <button 
                   onClick={() => setIsMenuOpen(false)} 
-                  className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 dark:text-neutral-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 hover:rotate-90 duration-300"
+                  className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 dark:text-neutral-400 focus:outline-none focus:outline-2 focus:outline-sky-500 hover:rotate-90 duration-300"
                   aria-label="Close menu"
                 >
                   <X className="w-6 h-6" />
@@ -269,31 +256,12 @@ const Header: React.FC<HeaderProps> = ({
                       onClick={() => { onNoticesClick(); setIsMenuOpen(false); }} 
                       badge={hasNewNotices ? "New" : undefined}
                   />
-                  <MenuItem 
-                      icon={Calculator} 
-                      label="Tools" 
-                      subLabel="Calculator & Timer"
-                      onClick={() => { onToolsClick(); setIsMenuOpen(false); }} 
-                  />
-                  <MenuItem 
-                      icon={RefreshCw} 
-                      label="Sync Progress" 
-                      subLabel="Backup or restore data"
-                      onClick={() => { onSyncClick(); setIsMenuOpen(false); }} 
-                  />
                 </div>
 
                 <div className="h-px bg-slate-100 dark:bg-white/5 my-5 mx-2" role="separator"></div>
 
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2" role="presentation">Extras</p>
                 <div className="space-y-1 animate-stagger-2">
-                  <MenuItem 
-                      icon={Film} 
-                      label="Veo Animator" 
-                      subLabel="Animate images with AI" 
-                      onClick={() => { onVeoClick(); setIsMenuOpen(false); }} 
-                      badge="New"
-                  />
                   <MenuItem 
                       icon={Award} 
                       label="Scholarships" 
@@ -304,7 +272,7 @@ const Header: React.FC<HeaderProps> = ({
                       icon={LayoutGrid} 
                       label="Facilities" 
                       subLabel="Campus amenities" 
-                      onClick={() => { setIsMenuOpen(false); }} 
+                      onClick={() => { onFacilitiesClick(); setIsMenuOpen(false); }} 
                   />
                 </div>
 
