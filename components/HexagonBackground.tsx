@@ -12,7 +12,7 @@ interface HexagonBackgroundProps {
     isDarkMode?: boolean;
 }
 
-// Generate glow texture for sprites
+// Helper to create glow texture for sprites
 const generateGlowTexture = () => {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
@@ -35,17 +35,14 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
   const sceneRef = useRef<THREE.Scene | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
 
-  // Handle Theme Changes dynamically
+  // Handle Theme Changes
   useEffect(() => {
     if (sceneRef.current) {
-        const bgColor = isDarkMode ? 0x050505 : 0xf0f2f5;
-        const fogColor = isDarkMode ? 0x050505 : 0xf0f2f5;
-        
-        // Smooth transition could be added here, but direct set is efficient
+        const bgColor = isDarkMode ? 0x000000 : 0xf0f2f5;
         sceneRef.current.background = new THREE.Color(bgColor);
-        sceneRef.current.fog = new THREE.FogExp2(fogColor, 0.02);
+        sceneRef.current.fog = new THREE.FogExp2(bgColor, isDarkMode ? 0.002 : 0.02);
 
-        // Adjust star visibility in light mode (invert or fade)
+        // Hide stars in light mode for cleaner look
         if (starsRef.current) {
             starsRef.current.visible = isDarkMode;
         }
@@ -55,17 +52,15 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // --- SCENE & CAMERA ---
+    // --- SCENE SETUP ---
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    
-    // Initial Theme Set
-    const bgColor = isDarkMode ? 0x050505 : 0xf0f2f5;
-    scene.background = new THREE.Color(bgColor); 
-    scene.fog = new THREE.FogExp2(bgColor, 0.02);
+    const initialColor = isDarkMode ? 0x000000 : 0xf0f2f5;
+    scene.background = new THREE.Color(initialColor);
+    scene.fog = new THREE.FogExp2(initialColor, isDarkMode ? 0.002 : 0.02);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 5, 20);
+    camera.position.set(0, 5, 22);
 
     // --- RENDERER ---
     const renderer = new THREE.WebGLRenderer({ 
@@ -75,8 +70,11 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    // ACESFilmicToneMapping handles bright lights better
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; 
+    renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -85,42 +83,54 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.enableZoom = false; // Disable scroll zoom
     controls.enablePan = false;
-    controls.minDistance = 10;
-    controls.maxDistance = 100;
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.5;
+    controls.autoRotateSpeed = 0.5; // Slow cinematic rotation
 
-    // --- ASSETS ---
+    // --- LIGHTING (Static & Bright) ---
+    // Ambient light ensures base visibility
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambientLight);
+
+    // Main Sun Light (Fixed Position)
+    const sunLight = new THREE.DirectionalLight(0xffffff, 3.0);
+    sunLight.position.set(5, 3, 5);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    scene.add(sunLight);
+
+    // --- ASSETS & TEXTURES ---
     const textureLoader = new THREE.TextureLoader();
     const glowTexture = new THREE.CanvasTexture(generateGlowTexture());
-    
+
+    // Earth Textures
     const earthMap = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
     const earthBump = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-topology.png');
     const earthSpec = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-water.png');
     const earthClouds = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
 
-    // --- STATIC LIGHTING (High Intensity, Fixed) ---
-    // Make the scene bright and visible
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    scene.add(ambientLight);
+    // Planet Textures (Using reliable assets from codepen demos for stability)
+    const txMercury = textureLoader.load('https://assets.codepen.io/122136/mercury_1k.jpg');
+    const txVenus = textureLoader.load('https://assets.codepen.io/122136/venus_1k.jpg');
+    const txMars = textureLoader.load('https://assets.codepen.io/122136/mars_1k.jpg');
+    const txJupiter = textureLoader.load('https://assets.codepen.io/122136/jupiter_1k.jpg');
+    const txSaturn = textureLoader.load('https://assets.codepen.io/122136/saturn_1k.jpg');
+    const txSaturnRing = textureLoader.load('https://assets.codepen.io/122136/saturn_ring_alpha.png');
+    const txNeptune = textureLoader.load('https://assets.codepen.io/122136/neptune_1k.jpg');
 
-    const mainLight = new THREE.DirectionalLight(0xffffff, 3.0);
-    mainLight.position.set(5, 3, 5); // Fixed Top-Right
-    scene.add(mainLight);
-
-    // --- UNIVERSE GROUP (Slow Rotation) ---
-    const universeGroup = new THREE.Group();
+    // --- GROUPS ---
+    const universeGroup = new THREE.Group(); // Background rotation
     scene.add(universeGroup);
 
-    // ================= EARTH (Main Focus - Scaled Down) =================
-    const earthGroup = new THREE.Group();
-    // Default position (will be updated by resize)
-    earthGroup.position.set(-4, 0, 0); 
-    scene.add(earthGroup); // Earth is separate from universe rotation for control
+    const earthGroup = new THREE.Group(); // Independent Earth position
+    earthGroup.position.set(-6.5, 0, 0); // Default Desktop
+    scene.add(earthGroup);
 
-    // Earth Sphere (Scale 0.5 of original ~3.5 -> Radius ~1.75)
-    const earthRadius = 1.75;
+    // ================= EARTH (Hero) =================
+    // Scale 0.5 -> Radius 1.6
+    const earthRadius = 1.6;
     const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
     const earthMat = new THREE.MeshStandardMaterial({
       map: earthMap,
@@ -131,103 +141,117 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     });
     const earth = new THREE.Mesh(earthGeo, earthMat);
     earth.rotation.y = -Math.PI / 2;
+    earth.castShadow = true;
+    earth.receiveShadow = true;
     earthGroup.add(earth);
 
     // Clouds
-    const cloudGeo = new THREE.SphereGeometry(earthRadius + 0.02, 64, 64);
+    const cloudGeo = new THREE.SphereGeometry(earthRadius + 0.03, 64, 64);
     const cloudMat = new THREE.MeshLambertMaterial({
       map: earthClouds,
       transparent: true,
       opacity: 0.8,
       blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      depthWrite: false,
     });
     const clouds = new THREE.Mesh(cloudGeo, cloudMat);
-    earthGroup.add(clouds);
+    earth.add(clouds);
 
     // Atmosphere Glow
     const atmosphereMat = new THREE.SpriteMaterial({
       map: glowTexture,
       color: 0x4ca6ff,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.6,
       blending: THREE.AdditiveBlending,
     });
     const atmosphere = new THREE.Sprite(atmosphereMat);
-    atmosphere.scale.set(earthRadius * 2.5, earthRadius * 2.5, 1);
+    atmosphere.scale.set(earthRadius * 2.6, earthRadius * 2.6, 1);
     earthGroup.add(atmosphere);
 
 
     // ================= SOLAR SYSTEM (Background) =================
     
-    // 1. The Sun (Distant Giant)
-    const sunGeo = new THREE.SphereGeometry(10, 32, 32);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
-    const sun = new THREE.Mesh(sunGeo, sunMat);
-    sun.position.set(0, 0, -100);
-    universeGroup.add(sun);
-    
-    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: glowTexture,
-        color: 0xffdd00,
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        opacity: 0.6
-    }));
-    sunGlow.scale.set(60, 60, 1);
-    sun.add(sunGlow);
-
-    // 2. Planets Helper
-    const createPlanet = (radius: number, color: number, x: number, z: number = 0, ring?: boolean) => {
+    // Helper for Planets
+    const createPlanet = (radius: number, texture: THREE.Texture, x: number, z: number, hasRing = false) => {
         const geo = new THREE.SphereGeometry(radius, 32, 32);
-        const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8 });
+        const mat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.7 });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(x, 0, z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         universeGroup.add(mesh);
 
-        if (ring) {
-            const ringGeo = new THREE.RingGeometry(radius * 1.4, radius * 2.2, 32);
-            const ringMat = new THREE.MeshBasicMaterial({ 
-                color: 0xcfb08c, 
+        // Saturn Ring
+        if (hasRing) {
+            const ringGeo = new THREE.RingGeometry(radius * 1.4, radius * 2.2, 64);
+            const ringMat = new THREE.MeshBasicMaterial({
+                map: txSaturnRing,
                 side: THREE.DoubleSide,
                 transparent: true,
                 opacity: 0.8
             });
-            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-            ringMesh.rotation.x = Math.PI / 2.5;
-            mesh.add(ringMesh);
+            // Align UVs for ring texture
+            const pos = ringGeo.attributes.position;
+            const v3 = new THREE.Vector3();
+            for (let i = 0; i < pos.count; i++){
+                v3.fromBufferAttribute(pos, i);
+                ringGeo.attributes.uv.setXY(i, v3.length() < radius * 1.8 ? 0 : 1, 1);
+            }
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2.2;
+            mesh.add(ring);
         }
         return mesh;
     };
 
-    createPlanet(0.6, 0xaaaaaa, 10, -20); // Mercury
-    createPlanet(1.2, 0xe3bb76, 18, -15); // Venus
-    createPlanet(0.8, 0xc1440e, -15, -10); // Mars
-    createPlanet(3.5, 0xd8ca9d, 35, -30); // Jupiter
-    createPlanet(3.0, 0xcfb08c, 50, -40, true); // Saturn
-    createPlanet(2.0, 0xadd8e6, -40, -50); // Uranus
-    createPlanet(2.0, 0x3e54e8, -55, -60); // Neptune
+    createPlanet(0.6, txMercury, 12, -15);
+    createPlanet(1.1, txVenus, 20, -10);
+    createPlanet(0.8, txMars, -15, -12);
+    createPlanet(4.0, txJupiter, 40, -40);
+    createPlanet(3.5, txSaturn, 60, -50, true);
+    createPlanet(3.0, txNeptune, -50, -60);
 
-    // 3. Black Hole (Stylized)
+    // ================= BLACK HOLE (Cinematic) =================
     const blackHoleGroup = new THREE.Group();
-    blackHoleGroup.position.set(-40, 15, -60);
+    blackHoleGroup.position.set(-30, 10, -80);
+    blackHoleGroup.rotation.x = Math.PI / 6;
     universeGroup.add(blackHoleGroup);
 
-    const singularity = new THREE.Mesh(
-        new THREE.SphereGeometry(3, 32, 32),
+    // Event Horizon (Core)
+    const bhCore = new THREE.Mesh(
+        new THREE.SphereGeometry(4, 32, 32),
         new THREE.MeshBasicMaterial({ color: 0x000000 })
     );
-    blackHoleGroup.add(singularity);
+    blackHoleGroup.add(bhCore);
 
-    const accretionDisk = new THREE.Mesh(
-        new THREE.TorusGeometry(6, 1.5, 16, 100),
-        new THREE.MeshBasicMaterial({ color: 0x8a2be2, side: THREE.DoubleSide })
-    );
-    accretionDisk.rotation.x = Math.PI / 3;
-    accretionDisk.scale.z = 0.1;
-    blackHoleGroup.add(accretionDisk);
+    // Accretion Disk (Glowing)
+    const diskGeo = new THREE.TorusGeometry(8, 2, 16, 100);
+    const diskMat = new THREE.MeshBasicMaterial({ 
+        color: 0x8a2be2, // Violet
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.8 
+    });
+    const disk = new THREE.Mesh(diskGeo, diskMat);
+    disk.rotation.x = Math.PI / 2;
+    disk.scale.z = 0.1; // Flatten it
+    blackHoleGroup.add(disk);
 
-    // ================= STARS & GALAXY =================
+    // Add bright glow sprite to black hole
+    const bhGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: glowTexture,
+        color: 0x9370db,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        opacity: 0.5
+    }));
+    bhGlow.scale.set(30, 30, 1);
+    blackHoleGroup.add(bhGlow);
+
+
+    // ================= STARFIELD =================
     const starCount = 3000;
     const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starCount * 3);
@@ -235,20 +259,20 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     const color = new THREE.Color();
     
     for (let i = 0; i < starCount; i++) {
-        // Spread stars in a wide volume
-        const x = (Math.random() - 0.5) * 400;
-        const y = (Math.random() - 0.5) * 400;
-        const z = (Math.random() - 0.5) * 400;
+        // Distribute stars in a large sphere
+        const r = 200 + Math.random() * 300;
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(2 * Math.random() - 1);
         
-        starPos[i*3] = x;
-        starPos[i*3+1] = y;
-        starPos[i*3+2] = z;
+        starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+        starPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        starPos[i*3+2] = r * Math.cos(phi);
 
-        // Multicoloured Galaxy Feel
+        // Random Galaxy Colors
         const choice = Math.random();
-        if (choice > 0.8) color.setHex(0xffd700); // Gold
-        else if (choice > 0.5) color.setHex(0x4ca6ff); // Blue
-        else color.setHex(0xffffff); // White
+        if (choice > 0.8) color.setHex(0xffaa33); // Gold/Orange
+        else if (choice > 0.5) color.setHex(0xaaaaaa); // White
+        else color.setHex(0x5599ff); // Blue
 
         starColors[i*3] = color.r;
         starColors[i*3+1] = color.g;
@@ -258,28 +282,31 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
     
     const starMat = new THREE.PointsMaterial({
-        size: 0.6,
+        size: 0.5,
         vertexColors: true,
         transparent: true,
         opacity: 0.8,
-        sizeAttenuation: true
     });
     const stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
-    starsRef.current = stars; // Ref for toggling visibility
+    starsRef.current = stars;
 
-    // --- POST PROCESSING ---
+
+    // --- POST PROCESSING (Bloom) ---
     const composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
 
     const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
-        1.5, 0.4, 0.85
+        1.0, // Strength
+        0.4, // Radius
+        0.85 // Threshold
     );
     composer.addPass(bloomPass);
 
-    // --- RESIZE & LAYOUT ---
+
+    // --- RESIZE HANDLER ---
     const handleResize = () => {
       if (!rendererRef.current) return;
       const width = window.innerWidth;
@@ -294,16 +321,15 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
       // Responsive Earth Position
       if (width > 768) {
         // Desktop: Left side
-        earthGroup.position.set(-4, 0, 0);
-        camera.position.z = 20;
+        earthGroup.position.set(-6.5, 0, 0);
       } else {
         // Mobile: Bottom Center
-        earthGroup.position.set(0, -3.5, 0);
-        camera.position.z = 28; // Zoom out more on mobile
+        earthGroup.position.set(0, -3, 0);
       }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
+
 
     // --- ANIMATION LOOP ---
     const clock = new THREE.Clock();
@@ -314,21 +340,16 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
 
-      // Earth Spin
+      // Rotate Earth independently
       earth.rotation.y += 0.05 * delta;
       clouds.rotation.y += 0.07 * delta;
 
-      // Slow Universe Rotation
+      // Slowly rotate the entire universe background
       universeGroup.rotation.y += 0.02 * delta;
 
-      // Subtle Star Drift
-      if (starsRef.current) {
-          starsRef.current.rotation.y -= 0.005 * delta;
-      }
-
-      // Black Hole Pulse
-      const scale = 1 + Math.sin(elapsed * 2) * 0.05;
-      accretionDisk.scale.set(1 * scale, 1 * scale, 0.1);
+      // Pulse the Black Hole Disk
+      const pulse = 1 + Math.sin(elapsed * 2) * 0.05;
+      disk.scale.set(1 * pulse, 1 * pulse, 0.1);
 
       controls.update();
       composer.render();
@@ -348,15 +369,17 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
       composer.dispose();
       controls.dispose();
       
-      // Cleanup Geometries & Materials
       earthGeo.dispose(); earthMat.dispose();
       cloudGeo.dispose(); cloudMat.dispose();
-      sunGeo.dispose(); sunMat.dispose();
+      diskGeo.dispose(); diskMat.dispose();
       starGeo.dispose(); starMat.dispose();
       atmosphereMat.dispose();
       glowTexture.dispose();
-      earthMap.dispose(); earthBump.dispose(); 
-      earthSpec.dispose(); earthClouds.dispose();
+      
+      // Dispose textures
+      earthMap.dispose(); earthBump.dispose(); earthSpec.dispose(); earthClouds.dispose();
+      txMercury.dispose(); txVenus.dispose(); txMars.dispose(); 
+      txJupiter.dispose(); txSaturn.dispose(); txSaturnRing.dispose(); txNeptune.dispose();
     };
   }, []);
 
@@ -370,9 +393,9 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
             width: '100%', 
             height: '100%', 
             zIndex: -1, 
-            background: isDarkMode ? '#050505' : '#f0f2f5',
-            pointerEvents: 'auto',
-            transition: 'background-color 0.5s ease'
+            background: isDarkMode ? '#000000' : '#f0f2f5',
+            transition: 'background-color 0.5s ease',
+            pointerEvents: 'auto'
         }} 
     />
   );
