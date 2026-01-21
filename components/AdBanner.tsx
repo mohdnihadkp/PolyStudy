@@ -12,7 +12,7 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Clean up previous ads
+    // Clean up previous ads to prevent duplication
     containerRef.current.innerHTML = '';
 
     if (format === 'leaderboard') {
@@ -68,20 +68,24 @@ const AdBanner: React.FC<AdBannerProps> = ({ format = 'native', className = '' }
     }
   }, [format]);
 
-  // CSS Scaling Logic for Mobile Responsiveness (728px -> 320px)
-  // Scale factor = 320 / 728 ≈ 0.44
-  const scaleClasses = format === 'leaderboard' 
-    ? "w-[728px] h-[90px] origin-top transform scale-[0.44] md:scale-100 transition-transform duration-300"
-    : "w-full";
+  // Strict Sizing Logic:
+  // Mobile (<768px): Container 320px x 50px. Content (728x90) scaled down (0.44x).
+  // Desktop (>=768px): Container 728px x 90px. Content full size.
+  
+  // Wrapper defines the space occupied on the page
+  const wrapperClass = format === 'leaderboard' 
+    ? "relative overflow-hidden w-[320px] h-[50px] md:w-[728px] md:h-[90px] transition-all duration-300 ease-in-out bg-black/5 dark:bg-white/5 rounded-lg"
+    : "w-full min-h-[50px] flex justify-center items-center";
 
-  const wrapperClasses = format === 'leaderboard'
-    ? "w-[320px] h-[50px] md:w-[728px] md:h-[90px] flex justify-center overflow-hidden" 
-    : "w-full min-h-[50px]";
+  // Content defines the transformation of the inner ad code
+  const contentClass = format === 'leaderboard'
+    ? "absolute top-1/2 left-1/2 w-[728px] h-[90px] -translate-x-1/2 -translate-y-1/2 origin-center transform scale-[0.44] md:scale-100 transition-transform duration-300 ease-in-out flex items-center justify-center"
+    : "w-full flex justify-center";
 
   return (
     <div className={`flex justify-center w-full ${className} animate-fade-in`}>
-        <div className={wrapperClasses}>
-            <div ref={containerRef} className={scaleClasses}></div>
+        <div className={wrapperClass}>
+            <div ref={containerRef} className={contentClass}></div>
         </div>
     </div>
   );
