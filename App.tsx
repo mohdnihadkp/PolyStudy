@@ -256,6 +256,11 @@ export default function App() {
     <div className="relative min-h-screen flex flex-col font-sans">
       <HexagonBackground />
       
+      {/* Top Responsive Ad Banner */}
+      <div className="w-full z-40 bg-white/5 backdrop-blur-sm border-b border-white/5 py-1">
+          <AdBanner format="leaderboard" />
+      </div>
+
       <Header 
         onHomeClick={handleHomeClick} 
         isHome={!selectedDept && !isBookmarksView} 
@@ -452,8 +457,10 @@ export default function App() {
         <div className="max-w-[1600px] mx-auto px-6 lg:px-8">
             
             {/* Native Banner relocated to Footer */}
-            <div className="flex justify-center mb-16">
-                <AdBanner format="native" />
+            <div className="flex justify-center mb-16 w-full">
+                <div className="w-full max-w-4xl">
+                    <AdBanner format="native" />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
