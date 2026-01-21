@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Header from './components/Header';
 import DepartmentCard from './components/DepartmentCard';
-import ResourceList from './components/ResourceList';
 import VideoGallery from './components/VideoGallery';
 import AITutor from './components/AITutor';
 import PDFViewer from './components/PDFViewer';
@@ -10,19 +9,17 @@ import VideoPlayer from './components/VideoPlayer';
 import SearchResults from './components/SearchResults';
 import AdBanner from './components/AdBanner'; 
 import DriveFolderModal from './components/DriveFolderModal'; 
-import SyncModal from './components/SyncModal'; 
 import ScholarshipModal from './components/ScholarshipModal';
 import ContactModal from './components/ContactModal';
-import VeoModal from './components/VeoModal';
-import StudyToolsModal from './components/StudyToolsModal';
 import DepartmentAIModal from './components/DepartmentAIModal';
 import SubjectProgress from './components/SubjectProgress';
 import HexagonBackground from './components/HexagonBackground'; 
 import NoticesModal from './components/NoticesModal';
 import AboutModal from './components/AboutModal'; 
-import { DEPARTMENTS, SEMESTERS, APP_NOTICES } from './constants';
+import FacilitiesModal from './components/FacilitiesModal';
+import { DEPARTMENTS, SEMESTERS } from './constants';
 import { Department, Semester, Subject, ResourceCategory, Resource, VideoLecture, BookmarkItem } from './types';
-import { Book, Video, Bot, GraduationCap, ArrowLeft, Layers, Calendar, FolderOpen, ChevronRight, FileText, ArrowRight, Zap, Hexagon, ExternalLink, CheckCircle2, Bookmark, AlertTriangle, MessageSquare, Sparkles, Github, Instagram, Facebook, Twitter, Linkedin, Phone, Bell, Heart, Globe } from 'lucide-react';
+import { Book, Bot, GraduationCap, ArrowLeft, FolderOpen, ArrowRight, Sparkles, Github, Instagram, Twitter, Linkedin, Heart, ExternalLink, Bookmark, Hexagon, MessageSquare } from 'lucide-react';
 
 interface SearchResultItem {
   type: 'dept' | 'subject' | 'video';
@@ -45,7 +42,6 @@ export default function App() {
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
   const [selectedSemester, setSelectedSemester] = useState<Semester | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<ResourceCategory | null>(null);
   const [isBookmarksView, setIsBookmarksView] = useState(false);
   
   // Subject-level tab state
@@ -54,13 +50,11 @@ export default function App() {
   const [viewingResource, setViewingResource] = useState<Resource | null>(null);
   const [playingVideo, setPlayingVideo] = useState<VideoLecture | null>(null);
   const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isScholarshipModalOpen, setIsScholarshipModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [isVeoModalOpen, setIsVeoModalOpen] = useState(false);
-  const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [isNoticesModalOpen, setIsNoticesModalOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false); 
+  const [isFacilitiesModalOpen, setIsFacilitiesModalOpen] = useState(false);
   const [isDeptAIModalOpen, setIsDeptAIModalOpen] = useState(false);
 
   // Search State
@@ -120,13 +114,11 @@ export default function App() {
       setPlayingVideo(null);
       setViewingResource(null);
       setIsDriveModalOpen(false);
-      setIsSyncModalOpen(false);
       setIsScholarshipModalOpen(false);
       setIsContactModalOpen(false);
-      setIsVeoModalOpen(false);
-      setIsToolsModalOpen(false);
       setIsNoticesModalOpen(false);
       setIsAboutModalOpen(false);
+      setIsFacilitiesModalOpen(false);
       setIsDeptAIModalOpen(false);
 
       if (!state || state.view === 'home') {
@@ -154,10 +146,9 @@ export default function App() {
 
       if (state?.modal === 'contact') setIsContactModalOpen(true);
       if (state?.modal === 'scholarship') setIsScholarshipModalOpen(true);
-      if (state?.modal === 'veo') setIsVeoModalOpen(true);
-      if (state?.modal === 'tools') setIsToolsModalOpen(true);
       if (state?.modal === 'notices') setIsNoticesModalOpen(true);
       if (state?.modal === 'about') setIsAboutModalOpen(true);
+      if (state?.modal === 'facilities') setIsFacilitiesModalOpen(true);
       if (state?.modal === 'deptAI') setIsDeptAIModalOpen(true);
   }, []);
 
@@ -265,22 +256,15 @@ export default function App() {
     <div className="relative min-h-screen flex flex-col font-sans">
       <HexagonBackground />
       
-      {/* Top Ad Banner - Responsive Leaderboard */}
-      <div className="flex justify-center w-full z-40 relative my-2 sm:my-4">
-          <AdBanner format="leaderboard" />
-      </div>
-
       <Header 
         onHomeClick={handleHomeClick} 
         isHome={!selectedDept && !isBookmarksView} 
         isDarkMode={isDarkMode} 
         toggleTheme={() => setIsDarkMode(!isDarkMode)}
         onSearch={setSearchQuery}
-        onSyncClick={() => openModal('sync', setIsSyncModalOpen)}
         onBookmarksClick={handleBookmarksClick}
         onScholarshipsClick={() => openModal('scholarship', setIsScholarshipModalOpen)}
-        onVeoClick={() => openModal('veo', setIsVeoModalOpen)}
-        onToolsClick={() => openModal('tools', setIsToolsModalOpen)}
+        onFacilitiesClick={() => openModal('facilities', setIsFacilitiesModalOpen)}
         onNoticesClick={() => openModal('notices', setIsNoticesModalOpen)}
         onAboutClick={() => openModal('about', setIsAboutModalOpen)}
         onContactClick={() => openModal('contact', setIsContactModalOpen)}
@@ -289,7 +273,7 @@ export default function App() {
       {searchQuery && (
         <SearchResults 
           results={searchResults} 
-          onSelectResult={(res) => { /* Handle search logic from original file */ }} 
+          onSelectResult={(res) => { /* Handle search logic */ }} 
           onClose={() => setSearchQuery('')}
           query={searchQuery}
         />
@@ -350,11 +334,6 @@ export default function App() {
                 Premium resources, solved papers, and AI tutoring for academic excellence.
               </p>
             </header>
-
-            {/* Native Banner on Front Page */}
-            <div className="max-w-4xl mx-auto my-8">
-                <AdBanner format="native" />
-            </div>
 
             <section>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" style={{ transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)` }}>
@@ -461,11 +440,9 @@ export default function App() {
       {viewingResource && <PDFViewer url={viewingResource.url} title={viewingResource.title} onClose={() => setViewingResource(null)} />}
       {playingVideo && <VideoPlayer youtubeId={playingVideo.youtubeId} title={playingVideo.title} onClose={() => setPlayingVideo(null)} />}
       {isDriveModalOpen && selectedSubject?.driveLink && <DriveFolderModal url={selectedSubject.driveLink} title={selectedSubject.title} onClose={closeModal} />}
-      {isSyncModalOpen && <SyncModal isOpen={isSyncModalOpen} onClose={closeModal} progressData={progressData} onImport={(d) => setProgressData(d)} />}
       {isScholarshipModalOpen && <ScholarshipModal onClose={closeModal} />}
       {isContactModalOpen && <ContactModal onClose={closeModal} />}
-      {isVeoModalOpen && <VeoModal onClose={closeModal} />}
-      {isToolsModalOpen && <StudyToolsModal onClose={closeModal} />}
+      {isFacilitiesModalOpen && <FacilitiesModal onClose={closeModal} />}
       {isNoticesModalOpen && <NoticesModal onClose={closeModal} />}
       {isAboutModalOpen && <AboutModal onClose={closeModal} />}
       {isDeptAIModalOpen && selectedDept && selectedSemester && <DepartmentAIModal departmentName={selectedDept.name} semesterName={selectedSemester} onClose={closeModal} />}
@@ -474,9 +451,9 @@ export default function App() {
       <footer className="relative mt-20 bg-slate-50 dark:bg-[#050505] border-t border-slate-200 dark:border-white/5 pt-16 pb-8 z-10">
         <div className="max-w-[1600px] mx-auto px-6 lg:px-8">
             
-            {/* Ad Banner before footer content */}
+            {/* Native Banner relocated to Footer */}
             <div className="flex justify-center mb-16">
-                <AdBanner format="leaderboard" />
+                <AdBanner format="native" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -492,10 +469,11 @@ export default function App() {
                         Democratizing education for Kerala Polytechnic students with open-source resources, AI tutoring, and premium study materials.
                     </p>
                     <div className="flex items-center gap-4 pt-2">
-                        <a href="https://github.com" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Github className="w-5 h-5" /></a>
-                        <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Linkedin className="w-5 h-5" /></a>
-                        <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Instagram className="w-5 h-5" /></a>
-                        <a href="https://twitter.com" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Twitter className="w-5 h-5" /></a>
+                        <a href="https://github.com/mohdnihadkp" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Github className="w-5 h-5" /></a>
+                        <a href="https://www.linkedin.com/in/mohammed-nihad-kp-71b6b6339?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Linkedin className="w-5 h-5" /></a>
+                        <a href="https://www.instagram.com/mohdnihadkp?igsh=MWs3M2k1OXNlbTV5YQ==" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Instagram className="w-5 h-5" /></a>
+                        <a href="https://x.com/mohdnihadkp?t=6AuEYXj5pzlWX6RVQ91Xcw&s=09" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors"><Twitter className="w-5 h-5" /></a>
+                        <a href="https://wa.me/qr/HQWL273HTEK4L1" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-emerald-500 transition-colors"><MessageSquare className="w-5 h-5" /></a>
                     </div>
                 </div>
 
@@ -504,9 +482,8 @@ export default function App() {
                     <h4 className="font-bold text-slate-900 dark:text-white mb-6">Explore</h4>
                     <ul className="space-y-4 text-sm font-medium text-slate-500 dark:text-slate-400">
                         <li><button onClick={handleHomeClick} className="hover:text-sky-500 transition-colors text-left w-full">Departments</button></li>
-                        <li><button onClick={() => openModal('veo', setIsVeoModalOpen)} className="hover:text-sky-500 transition-colors text-left w-full">Veo Animator</button></li>
                         <li><button onClick={() => openModal('scholarship', setIsScholarshipModalOpen)} className="hover:text-sky-500 transition-colors text-left w-full">Scholarships</button></li>
-                        <li><button onClick={() => openModal('tools', setIsToolsModalOpen)} className="hover:text-sky-500 transition-colors text-left w-full">Study Tools</button></li>
+                        <li><button onClick={() => openModal('facilities', setIsFacilitiesModalOpen)} className="hover:text-sky-500 transition-colors text-left w-full">Facilities</button></li>
                     </ul>
                 </div>
 
@@ -517,19 +494,24 @@ export default function App() {
                         <li><button onClick={() => openModal('contact', setIsContactModalOpen)} className="hover:text-sky-500 transition-colors text-left w-full">Feedback</button></li>
                         <li><button onClick={() => openModal('about', setIsAboutModalOpen)} className="hover:text-sky-500 transition-colors text-left w-full">About Us</button></li>
                         <li><button onClick={() => openModal('notices', setIsNoticesModalOpen)} className="hover:text-sky-500 transition-colors text-left w-full">Notices</button></li>
-                        <li><a href="#" className="hover:text-sky-500 transition-colors">Report Issue</a></li>
                     </ul>
                 </div>
 
-                {/* Legal Column */}
+                {/* Developer Column (Special) */}
                 <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white mb-6">Legal</h4>
-                    <ul className="space-y-4 text-sm font-medium text-slate-500 dark:text-slate-400">
-                        <li><a href="#" className="hover:text-sky-500 transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" className="hover:text-sky-500 transition-colors">Terms of Service</a></li>
-                        <li><a href="#" className="hover:text-sky-500 transition-colors">Cookie Policy</a></li>
-                        <li><a href="#" className="hover:text-sky-500 transition-colors">Disclaimer</a></li>
-                    </ul>
+                    <h4 className="font-bold text-slate-900 dark:text-white mb-6">Developer</h4>
+                    <a 
+                        href="https://mohdnihadkp.netlify.app" 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="group block p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-sky-500 dark:hover:border-sky-500 transition-all"
+                    >
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Portfolio</p>
+                        <h5 className="font-bold text-slate-900 dark:text-white group-hover:text-sky-500 transition-colors">mohdnihadkp.netlify.app</h5>
+                        <div className="flex items-center text-xs text-slate-500 mt-2 font-medium">
+                            Visit Official Site <ExternalLink className="w-3 h-3 ml-1" />
+                        </div>
+                    </a>
                 </div>
             </div>
 
