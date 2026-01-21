@@ -33,7 +33,7 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
   const mountRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const starsRef = useRef<THREE.Points | null>(null);
+  const starsGroupRef = useRef<THREE.Group | null>(null);
 
   // Handle Theme Changes
   useEffect(() => {
@@ -43,8 +43,8 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
         sceneRef.current.fog = new THREE.FogExp2(bgColor, isDarkMode ? 0.002 : 0.02);
 
         // Hide stars in light mode for cleaner look
-        if (starsRef.current) {
-            starsRef.current.visible = isDarkMode;
+        if (starsGroupRef.current) {
+            starsGroupRef.current.visible = isDarkMode;
         }
     }
   }, [isDarkMode]);
@@ -251,45 +251,85 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     blackHoleGroup.add(bhGlow);
 
 
-    // ================= STARFIELD =================
-    const starCount = 3000;
-    const starGeo = new THREE.BufferGeometry();
-    const starPos = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
-    const color = new THREE.Color();
+    // ================= STARFIELD (ENHANCED) =================
+    const starsGroup = new THREE.Group();
+    scene.add(starsGroup);
+    starsGroupRef.current = starsGroup;
+
+    // 1. Distant Background Stars (Dusty/Faint)
+    const bgStarCount = 5000;
+    const bgStarGeo = new THREE.BufferGeometry();
+    const bgStarPos = new Float32Array(bgStarCount * 3);
+    const bgStarColors = new Float32Array(bgStarCount * 3);
     
-    for (let i = 0; i < starCount; i++) {
-        // Distribute stars in a large sphere
-        const r = 200 + Math.random() * 300;
+    for (let i = 0; i < bgStarCount; i++) {
+        // Distribute in a large volume
+        const r = 200 + Math.random() * 600;
         const theta = 2 * Math.PI * Math.random();
         const phi = Math.acos(2 * Math.random() - 1);
         
-        starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-        starPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-        starPos[i*3+2] = r * Math.cos(phi);
+        bgStarPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+        bgStarPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        bgStarPos[i*3+2] = r * Math.cos(phi);
 
-        // Random Galaxy Colors
-        const choice = Math.random();
-        if (choice > 0.8) color.setHex(0xffaa33); // Gold/Orange
-        else if (choice > 0.5) color.setHex(0xaaaaaa); // White
-        else color.setHex(0x5599ff); // Blue
-
-        starColors[i*3] = color.r;
-        starColors[i*3+1] = color.g;
-        starColors[i*3+2] = color.b;
+        // Faint colors (Grey/White)
+        const intensity = 0.4 + Math.random() * 0.3;
+        bgStarColors[i*3] = intensity;
+        bgStarColors[i*3+1] = intensity;
+        bgStarColors[i*3+2] = intensity;
     }
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+    bgStarGeo.setAttribute('position', new THREE.BufferAttribute(bgStarPos, 3));
+    bgStarGeo.setAttribute('color', new THREE.BufferAttribute(bgStarColors, 3));
     
-    const starMat = new THREE.PointsMaterial({
-        size: 0.5,
+    const bgStarMat = new THREE.PointsMaterial({
+        size: 0.4,
         vertexColors: true,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.6,
+        sizeAttenuation: true
     });
-    const stars = new THREE.Points(starGeo, starMat);
-    scene.add(stars);
-    starsRef.current = stars;
+    const bgStars = new THREE.Points(bgStarGeo, bgStarMat);
+    starsGroup.add(bgStars);
+
+    // 2. Foreground Bright Stars (Cinematic)
+    const fgStarCount = 1500;
+    const fgStarGeo = new THREE.BufferGeometry();
+    const fgStarPos = new Float32Array(fgStarCount * 3);
+    const fgStarColors = new Float32Array(fgStarCount * 3);
+    const fgColor = new THREE.Color();
+
+    for (let i = 0; i < fgStarCount; i++) {
+        const r = 120 + Math.random() * 400; // Closer range
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        fgStarPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+        fgStarPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        fgStarPos[i*3+2] = r * Math.cos(phi);
+
+        // Realistic Spectral Colors
+        const t = Math.random();
+        if (t > 0.9) fgColor.setHex(0x9bb0ff); // Blue Giant
+        else if (t > 0.6) fgColor.setHex(0xffffff); // White
+        else if (t > 0.3) fgColor.setHex(0xffcf6f); // Yellow
+        else fgColor.setHex(0xffcc6f); // Orange/Red
+
+        fgStarColors[i*3] = fgColor.r;
+        fgStarColors[i*3+1] = fgColor.g;
+        fgStarColors[i*3+2] = fgColor.b;
+    }
+    fgStarGeo.setAttribute('position', new THREE.BufferAttribute(fgStarPos, 3));
+    fgStarGeo.setAttribute('color', new THREE.BufferAttribute(fgStarColors, 3));
+
+    const fgStarMat = new THREE.PointsMaterial({
+        size: 1.2, // Larger
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.9,
+        sizeAttenuation: true
+    });
+    const fgStars = new THREE.Points(fgStarGeo, fgStarMat);
+    starsGroup.add(fgStars);
 
 
     // --- POST PROCESSING (Bloom) ---
@@ -347,6 +387,11 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
       // Slowly rotate the entire universe background
       universeGroup.rotation.y += 0.02 * delta;
 
+      // Rotate Celestial Sphere (Stars)
+      if (starsGroupRef.current) {
+          starsGroupRef.current.rotation.y -= 0.002 * delta;
+      }
+
       // Pulse the Black Hole Disk
       const pulse = 1 + Math.sin(elapsed * 2) * 0.05;
       disk.scale.set(1 * pulse, 1 * pulse, 0.1);
@@ -372,9 +417,12 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
       earthGeo.dispose(); earthMat.dispose();
       cloudGeo.dispose(); cloudMat.dispose();
       diskGeo.dispose(); diskMat.dispose();
-      starGeo.dispose(); starMat.dispose();
       atmosphereMat.dispose();
       glowTexture.dispose();
+      
+      // Cleanup Stars
+      bgStarGeo.dispose(); bgStarMat.dispose();
+      fgStarGeo.dispose(); fgStarMat.dispose();
       
       // Dispose textures
       earthMap.dispose(); earthBump.dispose(); earthSpec.dispose(); earthClouds.dispose();
