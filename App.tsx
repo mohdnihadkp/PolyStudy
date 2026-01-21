@@ -252,9 +252,20 @@ export default function App() {
   const filteredSubjects = useMemo(() => selectedDept?.subjects.filter(s => s.semester === selectedSemester) || [], [selectedDept, selectedSemester]);
   const filteredVideos = useMemo(() => selectedDept?.videos.filter(v => v.semester === selectedSemester) || [], [selectedDept, selectedSemester]);
 
+  // Toggle Theme Function with HTML Class Logic
+  const toggleTheme = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col font-sans">
-      <HexagonBackground />
+      <HexagonBackground isDarkMode={isDarkMode} />
       
       {/* Top Responsive Ad Banner */}
       <div className="w-full z-40 bg-white/5 backdrop-blur-sm border-b border-white/5 py-1">
@@ -265,7 +276,7 @@ export default function App() {
         onHomeClick={handleHomeClick} 
         isHome={!selectedDept && !isBookmarksView} 
         isDarkMode={isDarkMode} 
-        toggleTheme={() => setIsDarkMode(!isDarkMode)}
+        toggleTheme={toggleTheme}
         onSearch={setSearchQuery}
         onBookmarksClick={handleBookmarksClick}
         onScholarshipsClick={() => openModal('scholarship', setIsScholarshipModalOpen)}
@@ -363,13 +374,13 @@ export default function App() {
                 <button onClick={handleHomeClick} className="glass-button p-3 rounded-full mr-4">
                     <ArrowLeft className="w-5 h-5" />
                 </button>
-                <h2 className="text-2xl md:text-4xl font-black">{selectedDept.name}</h2>
+                <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white">{selectedDept.name}</h2>
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {SEMESTERS.map((sem) => (
                     <button key={sem} onClick={() => handleSemesterSelect(sem)} className="glass-panel p-6 rounded-2xl text-left hover:scale-[1.02] transition-transform">
-                        <h3 className="text-xl font-bold">{sem}</h3>
-                        <ArrowRight className="w-4 h-4 mt-4" />
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{sem}</h3>
+                        <ArrowRight className="w-4 h-4 mt-4 text-slate-500 dark:text-slate-400" />
                     </button>
                 ))}
              </div>
@@ -381,7 +392,7 @@ export default function App() {
                         <button onClick={closeModal} className="glass-button p-3 rounded-full mr-4">
                             <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <h2 className="text-2xl md:text-3xl font-black">Subjects</h2>
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Subjects</h2>
                     </div>
                     <button onClick={() => openModal('deptAI', setIsDeptAIModalOpen)} className="hidden md:flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl">
                         <Bot className="w-5 h-5" /> AI Assistant
@@ -390,7 +401,7 @@ export default function App() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {filteredSubjects.map(sub => (
                          <div key={sub.id} onClick={() => handleSubjectSelect(sub)} className="glass-panel p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all">
-                             <h3 className="text-lg font-bold">{sub.title}</h3>
+                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{sub.title}</h3>
                              <p className="text-sm text-slate-500 line-clamp-2">{sub.description}</p>
                          </div>
                      ))}
@@ -402,7 +413,7 @@ export default function App() {
                     <button onClick={closeModal} className="glass-button p-3 rounded-full mr-4">
                         <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h2 className="text-xl md:text-3xl font-black truncate">{selectedSubject.title}</h2>
+                    <h2 className="text-xl md:text-3xl font-black truncate text-slate-900 dark:text-white">{selectedSubject.title}</h2>
                 </div>
                 
                 <div className="flex p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl mb-6 self-start">
@@ -410,7 +421,7 @@ export default function App() {
                         <button 
                             key={t}
                             onClick={() => setSubjectTab(t as any)}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold capitalize ${subjectTab === t ? 'bg-white dark:bg-neutral-800 shadow-md' : 'text-slate-500'}`}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold capitalize ${subjectTab === t ? 'bg-white dark:bg-neutral-800 shadow-md text-slate-900 dark:text-white' : 'text-slate-500'}`}
                         >
                             {t}
                         </button>
@@ -424,9 +435,9 @@ export default function App() {
                              <div onClick={() => openModal('drive', setIsDriveModalOpen)} className="glass-panel p-6 rounded-2xl cursor-pointer hover:border-sky-400 transition-colors flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <FolderOpen className="w-7 h-7 text-sky-600" />
-                                    <h3 className="text-lg font-bold">Course Materials (Drive)</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Course Materials (Drive)</h3>
                                 </div>
-                                <ExternalLink className="w-5 h-5" />
+                                <ExternalLink className="w-5 h-5 text-slate-500" />
                              </div>
                         </div>
                     )}
