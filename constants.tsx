@@ -87,24 +87,26 @@ export const SCHOLARSHIPS: ScholarshipPost[] = [
 export const APP_NOTICES: AppNotice[] = [
   {
     id: 'n_1',
-    date: 'Nov 15, 2023',
-    title: 'PolyStudy 2.5 Released',
+    date: 'Jan 01, 2026',
+    title: 'PolyStudy 3.0 Released',
     content: 'We have updated the platform with new AI Tutor capabilities powered by Gemini 2.5, darker dark mode, and improved performance.',
     isNew: true,
-    links: [{ label: 'Changelog', url: '#' }]
+    links: [{ label: 'Share', url: '#' }]
   },
   {
     id: 'n_2',
-    date: 'Nov 10, 2023',
-    title: 'Semester 5 & 3 Results Published',
+    date: 'Jan 25, 2026',
+    title: 'Semester 1 Results Published',
     content: 'The results for the recent odd semester diploma examinations have been published by the board. Check your results now.',
-    links: [{ label: 'Check Result', url: 'https://tekerala.org/' }]
-  },
+    isNew: true,
+    links: [{ label: 'Check Result', url: 'https://www.sbte.kerala.gov.in/login' }]
+  }, 
   {
     id: 'n_3',
-    date: 'Oct 28, 2023',
+    date: 'Jan 28, 2026',
     title: 'New Study Materials Added',
     content: 'Added comprehensive notes and previous year question papers for Computer Engineering Semester 4 and 6.',
+    isNew: true,
   }
 ];
 
