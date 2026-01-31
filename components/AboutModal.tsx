@@ -40,7 +40,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
             </div>
             <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">PolyStudy</h2>
             <p className="text-xs font-bold text-slate-500 dark:text-neutral-400 bg-slate-100 dark:bg-white/10 px-3 py-1 rounded-full mt-2">
-                Academic Companion v2.5
+                Academic Companion v3.0
             </p>
         </div>
 
@@ -91,7 +91,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                             <Code className="w-8 h-8" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Mohammed Nihad KP</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Mohammed Nihad </h3>
                             <p className="text-sm text-slate-500 dark:text-neutral-400 font-medium">Full Stack Developer & Creator</p>
                         </div>
                     </div>
@@ -130,7 +130,8 @@ const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                             { name: 'Tailwind CSS', desc: 'Styling' },
                             { name: 'Three.js', desc: '3D Graphics' },
                             { name: 'Gemini API', desc: 'AI Intelligence' },
-                            { name: 'Google Drive', desc: 'Content Hosting' }
+                            { name: 'Google Drive', desc: 'Content Hosting' },
+                            { name: 'Vercel', desc: 'Hosting' }
                         ].map((tech, i) => (
                             <div key={i} className="flex items-center p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                                 <Layers className="w-5 h-5 text-slate-400 mr-3" />
