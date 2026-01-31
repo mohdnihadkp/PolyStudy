@@ -93,11 +93,11 @@ const Footer: React.FC<FooterProps> = ({ onNoticesClick }) => {
                 </div>
             </div>
             <div className="border-t border-slate-200 dark:border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className="text-xs text-slate-400 font-medium">© {new Date().getFullYear()} PolyStudy.</p>
+                <p className="text-xs text-slate-400 font-medium">Copyright ©{new Date().getFullYear()} PolyStudy.All rights reserved</p>
                 <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
                     <span>Made with</span>
                     <Heart className="w-3 h-3 text-red-500 fill-current" />
-                    <span>in Kerala</span>
+                    <span>in our Kerala</span>
                 </div>
             </div>
         </div>
