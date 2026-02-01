@@ -18,7 +18,7 @@ const SubjectProgress: React.FC<SubjectProgressProps> = ({
   readOnly = false
 }) => {
   const getProgressStyle = (val: number) => {
-      // Dynamic Color Gradient logic
+      // Dynamic Colour Gradient logic
       let activeColor = '#0ea5e9'; // Sky 500 (Start)
       
       if (val >= 100) activeColor = '#10b981'; // Green (Complete)
