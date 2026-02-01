@@ -24,9 +24,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
     // --- EMAILJS CONFIGURATION ---
     // NOTE: Replace these with your actual EmailJS credentials to enable direct sending.
     // Get them for free at https://emailjs.com/
-    const SERVICE_ID = 'YOUR_SERVICE_ID'; // e.g. 'service_xxxxx'
-    const TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // e.g. 'template_xxxxx'
-    const PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // e.g. 'user_xxxxx'
+    const SERVICE_ID = 'service_8ucr436'; // e.g. 'service_xxxxx'
+    const TEMPLATE_ID = 'template_8j5ufg8'; // e.g. 'template_xxxxx'
+    const PUBLIC_KEY = 'e1MqgWnXieh6QUVGv'; // e.g. 'user_xxxxx'
     // -----------------------------
 
     const fallbackToMailto = () => {
