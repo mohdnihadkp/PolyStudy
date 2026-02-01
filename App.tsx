@@ -52,7 +52,7 @@ export default function App() {
         </div>
 
         <Routes>
-          {/* Homepage */}
+          {/* Homepages */}
           <Route path="/" element={<Home isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
           
           {/* Main Pages */}
