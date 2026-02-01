@@ -1,246 +1,198 @@
 
-import React, { useState, useRef } from 'react';
-import { X, Upload, Film, Loader2, Play, Download, Image as ImageIcon, Sparkles, AlertCircle, Wand2, RefreshCcw } from 'lucide-react';
-import { generateVeoVideo } from '../services/geminiService';
+import React, { useState } from 'react';
+import { X, Award, Search, Calendar, DollarSign, ExternalLink, Filter, ChevronRight, Tag } from 'lucide-react';
+import { SCHOLARSHIPS } from '../constants';
+import { ScholarshipPost } from '../types';
 import AdBanner from './AdBanner';
 
-interface VeoModalProps {
+interface ScholarshipModalProps {
   onClose: () => void;
 }
 
-const VeoModal: React.FC<VeoModalProps> = ({ onClose }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState('');
-  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const ScholarshipModal: React.FC<ScholarshipModalProps> = ({ onClose }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
-      setVideoUrl(null); // Reset previous video
-      setError(null);
-    }
-  };
+  // Extract all unique tags
+  const allTags = Array.from(new Set(SCHOLARSHIPS.flatMap(s => s.tags)));
 
-  const handleGenerate = async () => {
-    if (!file) return;
+  const filteredScholarships = SCHOLARSHIPS.filter(scholarship => {
+    const matchesSearch = scholarship.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          scholarship.provider.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = selectedTag ? scholarship.tags.includes(selectedTag) : true;
+    return matchesSearch && matchesTag;
+  });
 
-    setIsGenerating(true);
-    setError(null);
-    setVideoUrl(null);
-
-    try {
-      const url = await generateVeoVideo(file, prompt, aspectRatio);
-      setVideoUrl(url);
-    } catch (err: any) {
-      setError(err.message || "Failed to generate video. Please try again.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleRetry = () => {
-      setError(null);
-      handleGenerate();
-  }
-
-  const downloadVideo = () => {
-    if (videoUrl) {
-      const a = document.createElement('a');
-      a.href = videoUrl;
-      a.download = `veo-generated-${Date.now()}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
+  const toggleExpand = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 dark:bg-black/90 backdrop-blur-md p-4 animate-fade-in" onClick={onClose}>
       <div 
-        className="glass-panel w-full max-w-4xl rounded-[2.5rem] bg-black/80 border border-white/10 shadow-[0_0_50px_rgba(124,58,237,0.15)] relative flex flex-col md:flex-row overflow-hidden max-h-[90vh]"
+        className="glass-panel w-full max-w-5xl h-[90vh] rounded-[2rem] overflow-hidden bg-white dark:bg-black border border-black dark:border-white/20 shadow-2xl relative flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Left / Top Side: Controls */}
-        <div className="flex-1 p-6 md:p-8 flex flex-col overflow-y-auto overscroll-contain custom-scrollbar border-b md:border-b-0 md:border-r border-white/10 bg-gradient-to-b from-slate-900 to-black">
-            <div className="mb-6">
-                <div className="flex items-center space-x-2 mb-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/30">
-                        <Film className="w-6 h-6" />
-                    </div>
-                    <h2 className="text-2xl font-black text-white tracking-tight">Veo Animator</h2>
+        {/* Header */}
+        <div className="p-6 border-b border-black/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md gap-4 shrink-0">
+            <div className="flex items-center space-x-4">
+                <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl text-amber-600 dark:text-amber-400 shadow-sm transform rotate-3">
+                    <Award className="w-6 h-6 md:w-8 md:h-8" />
                 </div>
-                <p className="text-sm text-slate-400 font-medium">Bring your images to life with AI-powered video generation.</p>
-            </div>
-
-            <div className="space-y-6">
-                {/* Upload Section */}
                 <div>
-                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 block">Source Image</label>
-                    <div 
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`relative group aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 overflow-hidden ${file ? 'border-violet-500/50 bg-black' : 'border-white/10 hover:border-violet-500/50 hover:bg-white/5'}`}
-                    >
-                        {preview ? (
-                            <>
-                                <img src={preview} alt="Upload" className="w-full h-full object-contain opacity-50 group-hover:opacity-30 transition-opacity" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="px-4 py-2 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 border border-white/10">
-                                        <Upload className="w-3 h-3" /> Change Image
-                                    </span>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="text-center p-4">
-                                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                    <ImageIcon className="w-6 h-6 text-slate-400 group-hover:text-violet-400" />
-                                </div>
-                                <p className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Click to upload image</p>
-                            </div>
-                        )}
-                        <input 
-                            type="file" 
-                            ref={fileInputRef} 
-                            onChange={handleFileChange} 
-                            accept="image/*" 
-                            className="hidden" 
-                        />
-                    </div>
+                    <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-none">Scholarship Hub</h2>
+                    <p className="text-xs md:text-sm text-slate-500 dark:text-neutral-400 font-medium mt-1">
+                        Latest financial aid opportunities & grants
+                    </p>
                 </div>
+            </div>
+            
+            <button 
+                onClick={onClose}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 transition-colors"
+            >
+                <X className="w-6 h-6" />
+            </button>
+        </div>
 
-                {/* Settings */}
-                <div className="space-y-4">
-                    <div>
-                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 block">Prompt (Optional)</label>
-                        <div className="relative">
-                            <input 
-                                type="text"
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="E.g., Cinematic slow motion, neon lights..."
-                                className="w-full pl-4 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder:text-slate-600 transition-all"
-                            />
-                            <Wand2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-violet-500 opacity-50" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 block">Aspect Ratio</label>
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={() => setAspectRatio('16:9')}
-                                className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${aspectRatio === '16:9' ? 'bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-900/50' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}
-                            >
-                                Landscape (16:9)
-                            </button>
-                            <button 
-                                onClick={() => setAspectRatio('9:16')}
-                                className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${aspectRatio === '9:16' ? 'bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-900/50' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}
-                            >
-                                Portrait (9:16)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {error && (
-                    <div className="flex flex-col gap-2">
-                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center text-xs text-red-400 font-medium">
-                            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                            {error}
-                        </div>
-                        <button 
-                            onClick={handleRetry}
-                            className="self-end text-xs font-bold text-violet-400 hover:text-white flex items-center gap-1"
-                        >
-                            <RefreshCcw className="w-3 h-3" /> Retry Generation
-                        </button>
-                    </div>
-                )}
-
-                <button
-                    onClick={handleGenerate}
-                    disabled={!file || isGenerating}
-                    className={`w-full py-4 rounded-xl font-bold text-base flex items-center justify-center transition-all ${
-                        !file || isGenerating 
-                        ? 'bg-white/5 text-slate-500 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg hover:shadow-violet-500/25 hover:scale-[1.02]'
-                    }`}
+        {/* Search & Filter Bar */}
+        <div className="p-4 bg-slate-50/80 dark:bg-neutral-900/50 border-b border-black/5 dark:border-white/5 flex flex-col md:flex-row gap-3 shrink-0">
+            <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                    type="text" 
+                    placeholder="Search scholarships..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 glass-input rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500/50 border-transparent"
+                />
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar md:pb-0">
+                <button 
+                    onClick={() => setSelectedTag(null)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${!selectedTag ? 'bg-amber-500 text-white shadow-md' : 'bg-white dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}
                 >
-                    {isGenerating ? (
-                        <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            Generating Video...
-                        </>
-                    ) : (
-                        <>
-                            <Sparkles className="w-5 h-5 mr-2 fill-current" />
-                            Generate Video
-                        </>
-                    )}
+                    All
                 </button>
-                
-                <p className="text-[10px] text-center text-slate-500">
-                    Uses Google Veo model. Generation may take 1-2 minutes.
-                </p>
-
-                <div className="flex justify-center w-full mt-2">
-                    <AdBanner format="leaderboard" />
-                </div>
+                {allTags.map(tag => (
+                    <button 
+                        key={tag}
+                        onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${selectedTag === tag ? 'bg-amber-500 text-white shadow-md' : 'bg-white dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}
+                    >
+                        {tag}
+                    </button>
+                ))}
             </div>
         </div>
 
-        {/* Right / Bottom Side: Result */}
-        <div className="flex-1 bg-black flex items-center justify-center relative min-h-[300px] md:min-h-0 p-4 md:p-8 overscroll-contain">
-            {/* Background Effects */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.1),transparent_70%)] pointer-events-none"></div>
-
-            {videoUrl ? (
-                <div className="relative w-full h-full flex flex-col items-center justify-center animate-fade-in">
-                    <video 
-                        src={videoUrl} 
-                        controls 
-                        autoPlay 
-                        loop 
-                        className="max-w-full max-h-[60vh] rounded-xl shadow-2xl border border-white/10"
-                    />
-                    <button 
-                        onClick={downloadVideo}
-                        className="mt-6 px-6 py-3 bg-white text-black rounded-full font-bold text-sm flex items-center hover:bg-slate-200 transition-colors shadow-lg"
-                    >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download MP4
-                    </button>
-                </div>
-            ) : isGenerating ? (
-                <div className="text-center animate-pulse">
-                    <div className="w-20 h-20 rounded-full bg-violet-500/20 flex items-center justify-center mx-auto mb-4 relative">
-                        <div className="absolute inset-0 border-4 border-violet-500 rounded-full border-t-transparent animate-spin"></div>
-                        <Film className="w-8 h-8 text-violet-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">Creating Magic</h3>
-                    <p className="text-sm text-slate-400">Veo is dreaming up your video...</p>
+        {/* Content Area (Blog Feed Style) */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-black relative custom-scrollbar overscroll-contain">
+            {filteredScholarships.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                    <Filter className="w-12 h-12 mb-4 opacity-50" />
+                    <p className="font-bold">No scholarships found</p>
                 </div>
             ) : (
-                <div className="text-center opacity-40">
-                    <div className="w-24 h-24 rounded-3xl bg-white/5 border-2 border-dashed border-white/20 flex items-center justify-center mx-auto mb-4 rotate-3">
-                        <Play className="w-10 h-10 text-white" />
+                <>
+                    <div className="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
+                        {filteredScholarships.map(post => (
+                            <div 
+                                key={post.id} 
+                                className={`glass-panel bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden transition-all duration-300 ${expandedId === post.id ? 'shadow-2xl ring-1 ring-amber-500/30' : 'hover:shadow-lg hover:-translate-y-1'}`}
+                            >
+                                {/* Card Header */}
+                                <div 
+                                    className="p-5 md:p-6 cursor-pointer"
+                                    onClick={() => toggleExpand(post.id)}
+                                >
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex gap-2 mb-2 flex-wrap">
+                                            {post.isNew && (
+                                                <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md animate-pulse">
+                                                    New
+                                                </span>
+                                            )}
+                                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                                {post.provider}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <h3 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-2 leading-tight">
+                                        {post.title}
+                                    </h3>
+                                    
+                                    <div className="flex flex-wrap gap-4 text-xs md:text-sm font-medium text-slate-600 dark:text-neutral-300 mb-4">
+                                        <div className="flex items-center text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
+                                            <DollarSign className="w-4 h-4 mr-1" />
+                                            {post.amount}
+                                        </div>
+                                        <div className="flex items-center text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg">
+                                            <Calendar className="w-4 h-4 mr-1" />
+                                            Deadline: {post.deadline}
+                                        </div>
+                                    </div>
+
+                                    <p className={`text-sm text-slate-500 dark:text-neutral-400 leading-relaxed ${expandedId === post.id ? '' : 'line-clamp-2'}`}>
+                                        {post.description}
+                                    </p>
+                                    
+                                    <div className="mt-4 flex items-center justify-between">
+                                        <div className="flex gap-2">
+                                            {post.tags.slice(0, 3).map(tag => (
+                                                <span key={tag} className="flex items-center text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-neutral-800 px-2 py-1 rounded-full">
+                                                    <Tag className="w-3 h-3 mr-1" />
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <button className={`text-xs font-bold flex items-center transition-colors ${expandedId === post.id ? 'text-amber-500' : 'text-slate-400 group-hover:text-amber-500'}`}>
+                                            {expandedId === post.id ? 'Show Less' : 'Read More'} 
+                                            <ChevronRight className={`w-4 h-4 ml-1 transition-transform ${expandedId === post.id ? '-rotate-90' : 'rotate-90'}`} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Expanded Details (The "Blog" Content) */}
+                                {expandedId === post.id && (
+                                    <div className="px-6 pb-6 pt-0 animate-fade-in border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                                        <div className="mt-4 space-y-4">
+                                            <div>
+                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-wide">Eligibility Criteria</h4>
+                                                <ul className="space-y-2">
+                                                    {post.eligibility.map((item, idx) => (
+                                                        <li key={idx} className="flex items-start text-sm text-slate-600 dark:text-neutral-300">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 mr-3 flex-shrink-0"></div>
+                                                            {item}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            
+                                            <div className="pt-4 flex justify-end">
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(post.applicationLink, '_blank');
+                                                    }}
+                                                    className="glass-action-primary px-6 py-3 rounded-xl font-bold flex items-center shadow-lg hover:shadow-sky-500/25"
+                                                >
+                                                    Apply Now
+                                                    <ExternalLink className="w-4 h-4 ml-2" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
-                    <p className="text-sm font-medium text-slate-300">Your video preview will appear here</p>
-                </div>
+                    <div className="flex justify-center w-full my-6">
+                        <AdBanner format="leaderboard" />
+                    </div>
+                </>
             )}
         </div>
       </div>
@@ -248,4 +200,4 @@ const VeoModal: React.FC<VeoModalProps> = ({ onClose }) => {
   );
 };
 
-export default VeoModal;
+export default ScholarshipModal;
