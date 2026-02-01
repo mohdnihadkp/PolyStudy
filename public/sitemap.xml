@@ -78,7 +78,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  <!-- SITTTR/Result Related High Traffic Predictions -->
+  <!-- SITTTR/Result Related High Traffic Predictionss -->
   <url>
     <loc>https://polystudy.vercel.app/ce/sem1</loc>
     <changefreq>monthly</changefreq>
