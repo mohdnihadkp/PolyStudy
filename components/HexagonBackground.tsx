@@ -54,7 +54,8 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    // Cinematic Tone Mapping
+    
+    // Tone Mapping setup for cinematic look
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -81,20 +82,21 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     
     // Solar System Textures
     const moonMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
-    const moonBump = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'); // Using map as bump for crater depth
     const sunMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/sun.jpg');
+    const mercuryMap = textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/3/30/Mercury_Coloris_Basin.jpg'); // Fallback or procedural
+    const venusMap = textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/1/1c/Venus-real_color.jpg');
     const marsMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k.jpg');
     const jupiterMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/jupiter_2k.jpg');
     const saturnMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/saturn_2k.jpg');
     const saturnRingMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/saturn_ring_alpha.png');
 
-    // --- 3. LIGHTING (Cinematic Physics-Based) ---
-    // Sun Orbit Group: The light source rotates around the scene to simulate day/night cycles
+    // --- 3. LIGHTING (VISIBILITY FIX) ---
+    // Sun Orbit Group: The light source rotates around the scene
     const sunOrbitGroup = new THREE.Group();
     scene.add(sunOrbitGroup);
 
-    // Main Light (The Sun)
-    const sunLight = new THREE.DirectionalLight(0xffffff, 3.5);
+    // A. Main Sun Light (Directional - Creates the day/night cycle)
+    const sunLight = new THREE.DirectionalLight(0xffffff, 3.0);
     sunLight.position.set(50, 20, 30);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
@@ -102,12 +104,22 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     sunLight.shadow.bias = -0.0001;
     sunOrbitGroup.add(sunLight);
 
+    // B. Global Ambient Light (CRITICAL FIX: Increased from 0.1 to 1.2)
+    // This ensures textures are visible even without direct sunlight
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); 
+    scene.add(ambientLight);
+
+    // C. Fill Light (Hemisphere - Softens harsh shadows)
+    // Sky color (light blue tint) vs Ground color (darker)
+    const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x0f0e0d, 0.5);
+    scene.add(hemiLight);
+
     // Visible Sun Mesh (Billboarded)
     const sunGeo = new THREE.SphereGeometry(3, 32, 32);
     const sunMat = new THREE.MeshBasicMaterial({ 
         map: sunMap, 
         color: 0xffddaa,
-        toneMapped: false // Keeps it bright
+        toneMapped: false // Keeps it bright despite tone mapping
     });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
     sunMesh.position.copy(sunLight.position);
@@ -125,9 +137,6 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     sunGlow.scale.set(25, 25, 1);
     sunMesh.add(sunGlow);
 
-    // Fill Light (Deep Space Shadows)
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.05); // Very dark shadows
-    scene.add(ambientLight);
 
     // --- 4. HERO EARTH & MOON ---
     const earthGroup = new THREE.Group();
@@ -183,8 +192,8 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     const moonGeo = new THREE.SphereGeometry(0.6, 32, 32);
     const moonMat = new THREE.MeshStandardMaterial({
         map: moonMap,
-        bumpMap: moonBump,
-        bumpScale: 0.05,
+        bumpMap: moonMap, // Reuse map for crater depth
+        bumpScale: 0.02,
         roughness: 0.8
     });
     const moon = new THREE.Mesh(moonGeo, moonMat);
@@ -196,17 +205,33 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
     // Rahu & Ketu (Shadow Nodes) - Subtle markers
     const nodeGeo = new THREE.TorusGeometry(6, 0.02, 16, 100);
     const nodeMat = new THREE.MeshBasicMaterial({ 
-        color: 0x222222, 
+        color: 0x333333, 
         transparent: true, 
-        opacity: 0.3 
+        opacity: 0.2 
     });
     const orbitPath = new THREE.Mesh(nodeGeo, nodeMat);
     orbitPath.rotation.x = Math.PI / 2;
     earthGroup.add(orbitPath);
 
-    // --- 5. BACKGROUND PLANETS (Parallax) ---
+    // --- 5. COMPLETE SOLAR SYSTEM (Background) ---
     const bgGroup = new THREE.Group();
     scene.add(bgGroup);
+
+    // Mercury (Inner Planet)
+    const mercury = new THREE.Mesh(
+        new THREE.SphereGeometry(0.5, 32, 32),
+        new THREE.MeshStandardMaterial({ map: mercuryMap, color: 0xaaaaaa }) // Tint if texture fails
+    );
+    mercury.position.set(10, 5, -15);
+    bgGroup.add(mercury);
+
+    // Venus (Inner Planet)
+    const venus = new THREE.Mesh(
+        new THREE.SphereGeometry(0.9, 32, 32),
+        new THREE.MeshStandardMaterial({ map: venusMap, color: 0xeebb88 })
+    );
+    venus.position.set(-8, -4, -12);
+    bgGroup.add(venus);
 
     // Mars
     const mars = new THREE.Mesh(
@@ -257,7 +282,7 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
 
 
     // --- 6. STARFIELD & NEBULAE ---
-    const starCount = 6000;
+    const starCount = 5000;
     const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starCount * 3);
     const starCols = new Float32Array(starCount * 3);
@@ -318,11 +343,11 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
 
         // Intelligent Positioning
         if (w > 768) {
-            // Desktop: Earth Left
+            // Desktop: Earth Left, scaled normally
             earthGroupRef.current.position.set(-6.5, 0, 0);
             earthGroupRef.current.scale.set(1, 1, 1);
         } else {
-            // Mobile: Earth Bottom Center
+            // Mobile: Earth Bottom Center, scaled down slightly
             earthGroupRef.current.position.set(0, -3.5, 0);
             earthGroupRef.current.scale.set(0.85, 0.85, 0.85);
         }
@@ -349,9 +374,12 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
         sunOrbitGroup.rotation.y += 0.03 * delta; // Day/Night Cycle
 
         // Background Planet Motions
+        mercury.rotation.y += 0.05 * delta;
+        venus.rotation.y -= 0.02 * delta; // Retrograde
         mars.rotation.y += 0.1 * delta;
         jupiter.rotation.y += 0.08 * delta;
         saturnGroup.rotation.y = elapsed * 0.05;
+        
         // Subtle Parallax drift
         starField.rotation.y -= 0.002 * delta;
 
@@ -383,6 +411,7 @@ const HexagonBackground: React.FC<HexagonBackgroundProps> = ({ isDarkMode = true
         // Texture Disposal
         earthMap.dispose(); earthBump.dispose(); earthSpec.dispose(); earthClouds.dispose();
         moonMap.dispose(); sunMap.dispose(); marsMap.dispose(); jupiterMap.dispose();
+        mercuryMap.dispose(); venusMap.dispose();
     };
   }, [isDarkMode]);
 
