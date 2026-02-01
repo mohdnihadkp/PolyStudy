@@ -35,7 +35,7 @@ const ScholarshipModal: React.FC<ScholarshipModalProps> = ({ onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-black/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md gap-4">
+        <div className="p-6 border-b border-black/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md gap-4 shrink-0">
             <div className="flex items-center space-x-4">
                 <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl text-amber-600 dark:text-amber-400 shadow-sm transform rotate-3">
                     <Award className="w-6 h-6 md:w-8 md:h-8" />
@@ -57,7 +57,7 @@ const ScholarshipModal: React.FC<ScholarshipModalProps> = ({ onClose }) => {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="p-4 bg-slate-50/80 dark:bg-neutral-900/50 border-b border-black/5 dark:border-white/5 flex flex-col md:flex-row gap-3">
+        <div className="p-4 bg-slate-50/80 dark:bg-neutral-900/50 border-b border-black/5 dark:border-white/5 flex flex-col md:flex-row gap-3 shrink-0">
             <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input 
@@ -88,7 +88,7 @@ const ScholarshipModal: React.FC<ScholarshipModalProps> = ({ onClose }) => {
         </div>
 
         {/* Content Area (Blog Feed Style) */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-black relative custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-black relative custom-scrollbar overscroll-contain">
             {filteredScholarships.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-400">
                     <Filter className="w-12 h-12 mb-4 opacity-50" />
