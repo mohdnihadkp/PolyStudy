@@ -22,14 +22,14 @@ const FacilitiesModal: React.FC<FacilitiesModalProps> = ({ onClose }) => {
         className="glass-panel w-full max-w-3xl rounded-[2.5rem] bg-white dark:bg-[#0a0a0a] border border-white/20 shadow-2xl relative overflow-hidden flex flex-col max-h-[80vh] animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
+        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center shrink-0">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white">Campus Facilities</h2>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
                 <X className="w-6 h-6 dark:text-white" />
             </button>
         </div>
 
-        <div className="p-6 overflow-y-auto custom-scrollbar">
+        <div className="p-6 overflow-y-auto custom-scrollbar overscroll-contain flex-1 min-h-0">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {facilities.map((fac, idx) => (
                     <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-start gap-4 hover:shadow-lg transition-all">
