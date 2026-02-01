@@ -13,7 +13,7 @@ import DepartmentAIModal from '../components/DepartmentAIModal';
 import NoticesModal from '../components/NoticesModal';
 import { DEPARTMENTS, SEMESTERS, SEMESTER_URL_MAP, URL_SEMESTER_MAP } from '../constants';
 import { Semester, Resource, VideoLecture } from '../types';
-import { ArrowLeft, ArrowRight, FolderOpen, ExternalLink, Bot } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, ExternalLink, Bot, Search, Filter } from 'lucide-react';
 
 interface CourseViewProps {
   isDarkMode: boolean;
@@ -32,6 +32,9 @@ const CourseView: React.FC<CourseViewProps> = ({ isDarkMode, toggleTheme }) => {
   const [isDeptAIModalOpen, setIsDeptAIModalOpen] = useState(false);
   const [isNoticesModalOpen, setIsNoticesModalOpen] = useState(false);
   const [progressData, setProgressData] = useState<Record<string, number>>({});
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Load Progress
   useEffect(() => {
@@ -59,9 +62,15 @@ const CourseView: React.FC<CourseViewProps> = ({ isDarkMode, toggleTheme }) => {
     : null;
 
   // Filter lists
-  const filteredSubjects = useMemo(() => 
-    department?.subjects.filter(s => s.semester === decodedSemId) || [], 
-  [department, decodedSemId]);
+  const filteredSubjects = useMemo(() => {
+    if (!department) return [];
+    let list = department.subjects.filter(s => s.semester === decodedSemId);
+    if (searchQuery.trim()) {
+        const lowerQuery = searchQuery.toLowerCase();
+        list = list.filter(s => s.title.toLowerCase().includes(lowerQuery) || s.id.toLowerCase().includes(lowerQuery));
+    }
+    return list;
+  }, [department, decodedSemId, searchQuery]);
 
   const filteredVideos = useMemo(() => 
     department?.videos.filter(v => v.semester === decodedSemId) || [], 
@@ -71,6 +80,14 @@ const CourseView: React.FC<CourseViewProps> = ({ isDarkMode, toggleTheme }) => {
   const handleSemesterSelect = (sem: Semester) => {
     const slug = SEMESTER_URL_MAP[sem];
     navigate(`/${deptId}/${slug}`);
+    setSearchQuery('');
+  };
+
+  const handleSemesterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const slug = e.target.value;
+      if (slug) navigate(`/${deptId}/${slug}`);
+      else navigate(`/${deptId}`);
+      setSearchQuery('');
   };
 
   const handleSubjectSelect = (subId: string) => {
@@ -112,17 +129,62 @@ const CourseView: React.FC<CourseViewProps> = ({ isDarkMode, toggleTheme }) => {
       <main className="relative z-10 flex-grow max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Navigation Breadcrumb / Back Button */}
-        <div className="flex items-center mb-6">
-            <button onClick={handleBack} className="glass-button p-3 rounded-full mr-4">
-                <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{department.name}</span>
-                <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white">
-                    {subject ? subject.title : decodedSemId ? decodedSemId : "Select Semester"}
-                </h2>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center">
+                <button onClick={handleBack} className="glass-button p-3 rounded-full mr-4">
+                    <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{department.name}</span>
+                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
+                        {subject ? subject.title : decodedSemId ? decodedSemId : "Select Semester"}
+                    </h2>
+                </div>
             </div>
+
+            {/* Controls specific to view */}
+            {decodedSemId && !subject && (
+                <div className="flex gap-2">
+                    <div className="relative">
+                        <select 
+                            value={semesterSlug || ''} 
+                            onChange={handleSemesterChange}
+                            className="appearance-none pl-10 pr-8 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/50 cursor-pointer"
+                        >
+                            {Object.entries(SEMESTER_URL_MAP).map(([semName, slug]) => (
+                                <option key={slug} value={slug}>{semName}</option>
+                            ))}
+                        </select>
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
+                    
+                    <div className="relative hidden sm:block">
+                        <input 
+                            type="text" 
+                            placeholder="Search subjects..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500/50 text-slate-900 dark:text-white placeholder-slate-400 w-[200px]"
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    </div>
+                </div>
+            )}
         </div>
+
+        {/* Search Bar for Mobile (Visible only when in subject list) */}
+        {decodedSemId && !subject && (
+            <div className="mb-6 sm:hidden relative">
+                <input 
+                    type="text" 
+                    placeholder="Search subjects..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500/50 text-slate-900 dark:text-white placeholder-slate-400"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            </div>
+        )}
 
         {/* View 1: Semester Selection (When only Department is selected) */}
         {!decodedSemId && (
@@ -140,19 +202,30 @@ const CourseView: React.FC<CourseViewProps> = ({ isDarkMode, toggleTheme }) => {
         {decodedSemId && !subject && (
             <div className="animate-slide-up pt-2">
                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-bold text-slate-500">Subjects</h3>
-                    <button onClick={() => setIsDeptAIModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
-                        <Bot className="w-5 h-5" /> AI Assistant
+                    <h3 className="text-lg font-bold text-slate-500">Subjects ({filteredSubjects.length})</h3>
+                    <button onClick={() => setIsDeptAIModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-bold shadow-lg shadow-indigo-500/20">
+                        <Bot className="w-4 h-4" /> AI Assistant
                     </button>
                  </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     {filteredSubjects.map(sub => (
-                         <div key={sub.id} onClick={() => handleSubjectSelect(sub.id)} className="glass-panel p-5 rounded-2xl cursor-pointer hover:shadow-lg hover:border-sky-500/50 transition-all">
-                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{sub.title}</h3>
-                             <p className="text-sm text-slate-500 line-clamp-2">{sub.description}</p>
-                         </div>
-                     ))}
-                 </div>
+                 
+                 {filteredSubjects.length === 0 ? (
+                     <div className="text-center py-12 glass-panel rounded-2xl border-dashed border-2 border-slate-200 dark:border-white/10">
+                         <p className="text-slate-500 font-medium">No subjects found matching "{searchQuery}"</p>
+                     </div>
+                 ) : (
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         {filteredSubjects.map(sub => (
+                             <div key={sub.id} onClick={() => handleSubjectSelect(sub.id)} className="glass-panel p-5 rounded-2xl cursor-pointer hover:shadow-lg hover:border-sky-500/50 transition-all group">
+                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-sky-500 transition-colors">{sub.title}</h3>
+                                 <p className="text-sm text-slate-500 line-clamp-2 mt-1">{sub.description}</p>
+                                 <div className="mt-4 flex items-center justify-between">
+                                     <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md">{sub.id}</span>
+                                     <SubjectProgress progress={progressData[sub.id] || 0} onChange={()=>{}} isDarkMode={isDarkMode} className="w-24 opacity-60" readOnly />
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+                 )}
             </div>
         )}
 
@@ -175,15 +248,17 @@ const CourseView: React.FC<CourseViewProps> = ({ isDarkMode, toggleTheme }) => {
                     {subjectTab === 'materials' && (
                         <div className="animate-fade-in space-y-6">
                             <SubjectProgress progress={progressData[subject.id] || 0} onChange={(val) => updateProgress(subject.id, val)} isDarkMode={isDarkMode} />
-                             <div onClick={() => setIsDriveModalOpen(true)} className="glass-panel p-6 rounded-2xl cursor-pointer hover:border-sky-400 transition-colors flex items-center justify-between">
+                             <div onClick={() => setIsDriveModalOpen(true)} className="glass-panel p-6 rounded-2xl cursor-pointer hover:border-sky-400 transition-colors flex items-center justify-between group">
                                 <div className="flex items-center gap-4">
-                                    <FolderOpen className="w-7 h-7 text-sky-600" />
+                                    <div className="p-3 bg-sky-100 dark:bg-sky-900/30 rounded-xl text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                                        <FolderOpen className="w-7 h-7" />
+                                    </div>
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Course Materials (Drive)</h3>
                                         <p className="text-sm text-slate-500">Access notes, previous question papers, and texts</p>
                                     </div>
                                 </div>
-                                <ExternalLink className="w-5 h-5 text-slate-500" />
+                                <ExternalLink className="w-5 h-5 text-slate-500 group-hover:text-sky-500 transition-colors" />
                              </div>
                         </div>
                     )}
