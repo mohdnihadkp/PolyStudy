@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ExternalLink, 
@@ -19,7 +20,8 @@ import {
   Shuffle,
   Repeat,
   Monitor,
-  AlertTriangle
+  AlertTriangle,
+  FastForward
 } from 'lucide-react';
 
 declare global {
@@ -113,6 +115,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
           e.preventDefault();
           skip(-10);
           break;
+        case 'ArrowUp':
+          e.preventDefault();
+          handleVolumeChange({ target: { value: Math.min(volume + 10, 100) } } as any);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          handleVolumeChange({ target: { value: Math.max(volume - 10, 0) } } as any);
+          break;
         case 'f':
         case 'F':
           e.preventDefault();
@@ -128,6 +138,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
           e.preventDefault();
           toggleMute();
           break;
+        case '>':
+        case '.':
+            if (e.shiftKey) {
+                changePlaybackRate(Math.min(playbackRate + 0.25, 2));
+            }
+            break;
+        case '<':
+        case ',':
+            if (e.shiftKey) {
+                changePlaybackRate(Math.max(playbackRate - 0.25, 0.25));
+            }
+            break;
         case 'Escape':
           if (isFullscreen) toggleFullscreen();
           else onClose();
@@ -137,7 +159,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, isFullscreen, duration, isTheaterMode]); 
+  }, [isPlaying, isFullscreen, duration, isTheaterMode, volume, playbackRate]); 
 
   const initializePlayer = () => {
     // Safety check to prevent duplicate initialization
@@ -260,7 +282,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
     if (playerError) return;
     const newVolume = parseInt(e.target.value);
     setVolume(newVolume);
-    playerRef.current.setVolume(newVolume);
+    if (playerRef.current) playerRef.current.setVolume(newVolume);
+    
     if (newVolume > 0 && isMuted) {
       setIsMuted(false);
       playerRef.current.unMute();
@@ -287,7 +310,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
     if (playerError) return;
     playerRef.current.setPlaybackRate(rate);
     setPlaybackRate(rate);
-    // Don't close menu immediately for better UX
   };
   
   const toggleShuffle = () => {
@@ -518,7 +540,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
                     <button onClick={toggleMute} className="text-white hover:text-sky-400 mr-2">
                         {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                     </button>
-                    <div className={`overflow-hidden transition-all duration-300 ${showVolumeSlider ? 'w-24 opacity-100' : 'w-0 opacity-0'}`}>
+                    <div className={`overflow-hidden transition-all duration-300 w-24 opacity-100`}>
                         <input
                             type="range"
                             min="0"
@@ -538,6 +560,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ youtubeId, title, onClose }) 
               {/* Right Controls */}
               <div className="flex items-center space-x-3">
                 
+                {/* Playback Speed Quick Access */}
+                <button 
+                    onClick={() => changePlaybackRate(playbackRate === 2 ? 1 : playbackRate + 0.25)}
+                    className="text-white hover:text-sky-400 text-xs font-bold w-8 text-center"
+                    title="Playback Speed"
+                >
+                    {playbackRate}x
+                </button>
+
                 {/* Settings Menu */}
                 <div className="relative">
                     <button 
