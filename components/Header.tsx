@@ -225,9 +225,9 @@ const Header: React.FC<HeaderProps> = ({
                     <Award className="w-5 h-5" />
                 </button>
 
-                {/* Notices Button (Desktop) */}
+                {/* Notices Button (Desktop) - Updated to navigate */}
                 <button 
-                    onClick={onNoticesClick}
+                    onClick={() => navigate('/notices')}
                     className="glass-button p-3 rounded-full hover:text-sky-500 dark:hover:text-sky-400 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 hover:scale-105 active:scale-95 transition-all hidden md:flex"
                     title="Notices"
                     aria-label="Open notices"
@@ -329,7 +329,7 @@ const Header: React.FC<HeaderProps> = ({
                         icon={Bell} 
                         label="Notices" 
                         subLabel="Latest updates & announcements" 
-                        onClick={() => { onNoticesClick(); setIsMenuOpen(false); }} 
+                        onClick={() => { navigate('/notices'); setIsMenuOpen(false); }} 
                     />
                     <MenuItem 
                         icon={Award} 
