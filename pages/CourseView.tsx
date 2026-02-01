@@ -275,7 +275,7 @@ const CourseView: React.FC<CourseViewProps> = ({ isDarkMode, toggleTheme }) => {
 
       <Footer onNoticesClick={() => setIsNoticesModalOpen(true)} />
 
-      {/* Modals specific to this view */}
+      {/* Modals specific to this views */}
       {viewingResource && <PDFViewer url={viewingResource.url} title={viewingResource.title} onClose={() => setViewingResource(null)} />}
       {playingVideo && <VideoPlayer youtubeId={playingVideo.youtubeId} title={playingVideo.title} onClose={() => setPlayingVideo(null)} />}
       {isDriveModalOpen && subject?.driveLink && <DriveFolderModal url={subject.driveLink} title={subject.title} onClose={() => setIsDriveModalOpen(false)} />}
