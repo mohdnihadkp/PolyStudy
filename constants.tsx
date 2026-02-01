@@ -95,6 +95,14 @@ export const APP_NOTICES: AppNotice[] = [
   },
   {
     id: 'n_2',
+    date: 'Feb 01, 2026',
+    title: 'Semester 2, PS&P',
+    content: 'HOMEWORK Of the Five programs',
+    isNew: true,
+    links: [{ label: 'open', url: 'https://drive.google.com/file/d/1ypT9AU83SlqskafLLKH9IH16HQJRd-Xm/view?usp=drive_link' }]
+  },
+  {
+    id: 'n_3',
     date: 'Jan 25, 2026',
     title: 'Semester 1 Results Published',
     content: 'The results for the recent odd semester diploma examinations have been published by the board. Check your results now.',
@@ -102,7 +110,7 @@ export const APP_NOTICES: AppNotice[] = [
     links: [{ label: 'Check Result', url: 'https://www.sbte.kerala.gov.in/login' }]
   }, 
   {
-    id: 'n_3',
+    id: 'n_4',
     date: 'Jan 28, 2026',
     title: 'New Study Materials Added',
     content: 'Added comprehensive notes and previous year question papers for Computer Engineering Semester 4 and 6.',
