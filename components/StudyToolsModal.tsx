@@ -96,12 +96,12 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
         <div className="flex-1 overflow-hidden bg-[#f0f2f5] dark:bg-[#000000] relative h-full">
             <div className="h-full flex flex-col relative z-10">
                 {activeTab === 'timer' && (
-                    <div className="h-full overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                    <div className="h-full overflow-y-auto p-4 md:p-8 custom-scrollbar overscroll-contain">
                         <PomodoroTimer />
                     </div>
                 )}
                 {activeTab === 'tasks' && (
-                    <div className="h-full overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                    <div className="h-full overflow-y-auto p-4 md:p-8 custom-scrollbar overscroll-contain">
                         <TaskManager />
                     </div>
                 )}
@@ -111,7 +111,7 @@ const StudyToolsModal: React.FC<StudyToolsModalProps> = ({ onClose }) => {
                     </div>
                 )}
                 {activeTab === 'calc' && (
-                    <div className="h-full bg-[#1a1c20] flex flex-col items-center justify-center relative p-4">
+                    <div className="h-full bg-[#1a1c20] flex flex-col items-center justify-center relative p-4 overscroll-contain overflow-y-auto">
                         <ScientificCalculator />
                     </div>
                 )}
