@@ -96,8 +96,8 @@ export const APP_NOTICES: AppNotice[] = [
   {
     id: 'n_2',
     date: 'Feb 01, 2026',
-    title: 'Semester 2, PS&P',
-    content: 'HOMEWORK Of the Five programs',
+    title: 'Semester 2, PS&P (HOMEWORK)',
+    content: 'Of the Five programs',
     isNew: true,
     links: [{ label: 'open', url: 'https://drive.google.com/file/d/1ypT9AU83SlqskafLLKH9IH16HQJRd-Xm/view?usp=drive_link' }]
   },
