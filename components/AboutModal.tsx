@@ -145,7 +145,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
             )}
         </div>
 
-        {/* Footer */}
+        {/* Foooter */}
         <div className="p-4 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-center gap-2 text-xs font-bold text-slate-400 shrink-0">
             <span className="flex items-center"><Heart className="w-3 h-3 mr-1 text-red-500 fill-current" /> Made in Kerala</span>
             <span>•</span>
