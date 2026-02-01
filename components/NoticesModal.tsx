@@ -15,7 +15,7 @@ const NoticesModal: React.FC<NoticesModalProps> = ({ onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/5">
+        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/5 shrink-0">
             <div className="flex items-center gap-3">
                 <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl">
                     <BellRing className="w-6 h-6" />
@@ -31,7 +31,7 @@ const NoticesModal: React.FC<NoticesModalProps> = ({ onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 custom-scrollbar overscroll-contain">
             <div className="relative border-l-2 border-slate-200 dark:border-white/10 ml-3 space-y-8">
                 {APP_NOTICES.map((notice, idx) => (
                     <div key={notice.id} className="relative pl-8 group">
