@@ -431,7 +431,7 @@ const ScientificCalculator = () => {
                 </div>
             </div>
 
-            {/* Keypad */}
+            {/* Keypade */}
             <div className="p-4 grid grid-rows-6 gap-2 bg-[#222]">
                 <div className="col-span-5 flex justify-between px-2 mb-2">
                     <span className="text-[10px] text-white/40 font-bold uppercase">PolyCalc FX-991</span>
