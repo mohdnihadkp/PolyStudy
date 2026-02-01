@@ -276,7 +276,7 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
     <div className="flex flex-col h-[65dvh] md:h-[600px] min-h-[400px] glass-panel rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-slate-200 dark:border-white/10 transition-all duration-300 bg-white dark:bg-black">
       
       {/* Header */}
-      <div className="bg-white/80 dark:bg-neutral-900/90 p-3 md:p-5 flex flex-col md:flex-row items-center justify-between border-b border-black/5 dark:border-white/10 backdrop-blur-md gap-3 md:gap-0 z-20">
+      <div className="bg-white/80 dark:bg-neutral-900/90 p-3 md:p-5 flex flex-col md:flex-row items-center justify-between border-b border-black/5 dark:border-white/10 backdrop-blur-md gap-3 md:gap-0 z-20 shrink-0">
         <div className="flex items-center space-x-3 w-full md:w-auto">
           {mode !== 'chat' && (
               <button onClick={() => setMode('chat')} className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 mr-2">
@@ -332,7 +332,7 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
       
       {mode === 'chat' && (
           <>
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth custom-scrollbar bg-slate-50 dark:bg-[#050505]">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar bg-slate-50 dark:bg-[#050505] p-4 md:p-6 space-y-6 scroll-smooth">
                 {messages.map((msg) => {
                     // Extract suggestions if present
                     const [content, suggestionsBlock] = msg.text.split('---SUGGESTIONS---');
@@ -381,7 +381,7 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-3 md:p-4 bg-white/90 dark:bg-[#111]/90 backdrop-blur-md border-t border-black/5 dark:border-white/5 z-20">
+            <div className="p-3 md:p-4 bg-white/90 dark:bg-[#111]/90 backdrop-blur-md border-t border-black/5 dark:border-white/5 z-20 shrink-0">
                 <div className="relative flex gap-2">
                     <input
                         type="text"
@@ -401,14 +401,15 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
       )}
 
       {mode === 'quiz' && (
-          <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-[#050505] p-4">
+          // Fixed scrolling: overflow-y-auto ensures the content scrolls within this container
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar bg-slate-50 dark:bg-[#050505] p-4 flex flex-col items-center">
              {isQuizLoading ? (
-                 <div className="text-center">
+                 <div className="text-center my-auto">
                      <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                      <p className="text-slate-500 font-bold">Generating {quizDifficulty} quiz...</p>
                  </div>
              ) : quiz ? (
-                 <div className="w-full max-w-2xl glass-panel p-6 md:p-8 rounded-[2rem] bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 shadow-xl">
+                 <div className="w-full max-w-2xl glass-panel p-6 md:p-8 rounded-[2rem] bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 shadow-xl my-4">
                      {!quizFinished ? (
                          <>
                              <div className="flex justify-between items-center mb-6">
@@ -437,12 +438,12 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
                                  })}
                              </div>
                              {selectedAnswer !== null && (
-                                 <div className="mt-6 animate-fade-in">
+                                 <div className="mt-6 animate-fade-in pb-2">
                                      <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 text-sm text-slate-600 dark:text-neutral-400 mb-4">
                                          <span className="font-bold text-slate-900 dark:text-white block mb-1">Explanation:</span>
                                          {quiz.questions[currentQuestionIndex].explanation}
                                      </div>
-                                     <button onClick={nextQuestion} className="w-full py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold">
+                                     <button onClick={nextQuestion} className="w-full py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold shadow-lg">
                                          {currentQuestionIndex < quiz.questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
                                      </button>
                                  </div>
@@ -462,7 +463,7 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
       )}
 
       {mode === 'flashcards' && (
-          <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-[#050505] p-4 relative overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar bg-slate-50 dark:bg-[#050505] p-4 relative flex flex-col items-center justify-center">
               {/* Background decorative elements */}
               <div className="absolute top-10 left-10 text-9xl text-slate-200 dark:text-white/5 font-black select-none pointer-events-none">A</div>
               <div className="absolute bottom-10 right-10 text-9xl text-slate-200 dark:text-white/5 font-black select-none pointer-events-none">Z</div>
@@ -473,7 +474,7 @@ const AITutor: React.FC<AITutorProps> = ({ departmentName, semesterName, subject
                       <p className="text-slate-500 font-bold">Generating cards...</p>
                   </div>
               ) : flashcards.length > 0 ? (
-                  <div className="w-full max-w-lg perspective-1000">
+                  <div className="w-full max-w-lg perspective-1000 my-auto">
                       <div 
                         className={`relative w-full aspect-[4/3] cursor-pointer transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}
                         onClick={() => setIsFlipped(!isFlipped)}
