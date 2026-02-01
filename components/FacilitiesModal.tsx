@@ -8,7 +8,7 @@ interface FacilitiesModalProps {
 
 const FacilitiesModal: React.FC<FacilitiesModalProps> = ({ onClose }) => {
   const facilities = [
-    { icon: <Library className="w-6 h-6" />, name: "Central Library", desc: "15,000+ volumes and digital journals." },
+    { icon: <Library className="w-6 h-6" />, name: "Central Library", desc: "14,000+ volumes and digital journals." },
     { icon: <FlaskConical className="w-6 h-6" />, name: "Modern Labs", desc: "State-of-the-art equipment for all depts." },
     { icon: <Monitor className="w-6 h-6" />, name: "Computer Center", desc: "High-speed internet & CAD workstations." },
     { icon: <Wifi className="w-6 h-6" />, name: "Campus Wi-Fi", desc: "Free 24/7 connectivity for students." },
