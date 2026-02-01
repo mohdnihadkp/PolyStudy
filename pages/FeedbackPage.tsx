@@ -26,9 +26,9 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ isDarkMode, toggleTheme }) 
     e.preventDefault();
     setIsSubmitting(true);
 
-    const SERVICE_ID = 'YOUR_SERVICE_ID';
-    const TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
-    const PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+    const SERVICE_ID = 'service_8ucr436';
+    const TEMPLATE_ID = 'template_8j5ufg8';
+    const PUBLIC_KEY = 'e1MqgWnXieh6QUVGv';
 
     const fallbackToMailto = () => {
         const subject = encodeURIComponent(`Feedback from PolyStudy User: ${name}`);
