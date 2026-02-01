@@ -78,7 +78,7 @@ const Footer: React.FC<FooterProps> = ({ onNoticesClick }) => {
                         <li><button onClick={() => navigate('/scholarship')} className="hover:text-sky-500 transition-colors text-left w-full">Scholarships</button></li>
                         <li><button onClick={() => navigate('/ai-tutor')} className="hover:text-sky-500 transition-colors text-left w-full">AI Tutor</button></li>
                         <li>
-                            <button onClick={onNoticesClick} className="hover:text-sky-500 transition-colors text-left w-full flex items-center">
+                            <button onClick={() => navigate('/notices')} className="hover:text-sky-500 transition-colors text-left w-full flex items-center">
                                 Notice Board
                                 {hasNewNotices && <span className="ml-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
                             </button>
@@ -97,7 +97,7 @@ const Footer: React.FC<FooterProps> = ({ onNoticesClick }) => {
                 <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
                     <span>Made with</span>
                     <Heart className="w-3 h-3 text-red-500 fill-current" />
-                    <span>in our Kerala</span>
+                    <span>in Kerala</span>
                 </div>
             </div>
         </div>
