@@ -9,6 +9,7 @@ import ScholarshipPage from './pages/ScholarshipPage';
 import AITutorPage from './pages/AITutorPage';
 import FeedbackPage from './pages/FeedbackPage';
 import NoticesPage from './pages/NoticesPage';
+import VideoLibrary from './pages/VideoLibrary';
 import AdBanner from './components/AdBanner';
 
 // Scroll to top on route change
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/ai-tutor" element={<AITutorPage isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
           <Route path="/feedback" element={<FeedbackPage isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
           <Route path="/notices" element={<NoticesPage isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
+          <Route path="/videos" element={<VideoLibrary isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
           
           {/* Dynamic Routes: Department -> Semester -> Subject */}
           <Route path="/:deptId" element={<CourseView isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
