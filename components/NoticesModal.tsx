@@ -35,7 +35,7 @@ const NoticesModal: React.FC<NoticesModalProps> = ({ onClose }) => {
             <div className="relative border-l-2 border-slate-200 dark:border-white/10 ml-3 space-y-8">
                 {APP_NOTICES.map((notice, idx) => (
                     <div key={notice.id} className="relative pl-8 group">
-                        {/* Timeline Dot */}
+                        {/* Timeliine Dot */}
                         <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white dark:border-black ${notice.isNew ? 'bg-red-500 animate-pulse' : 'bg-slate-300 dark:bg-neutral-600'}`}></div>
                         
                         <div className="flex flex-col gap-1 mb-2">
