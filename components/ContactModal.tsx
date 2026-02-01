@@ -89,7 +89,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                 </p>
             </div>
         ) : (
-            <div className="overflow-y-auto p-6 md:p-8 custom-scrollbar">
+            <div className="overflow-y-auto p-6 md:p-8 custom-scrollbar flex-1 min-h-0 overscroll-contain">
                 <div className="mb-6 md:mb-8 relative z-10 pt-2">
                     <h2 className="text-2xl md:text-3xl font-black text-black dark:text-white mb-2 tracking-tight">Feedback</h2>
                     <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium pr-8">
