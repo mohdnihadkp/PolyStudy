@@ -87,26 +87,32 @@ export const SCHOLARSHIPS: ScholarshipPost[] = [
 export const APP_NOTICES: AppNotice[] = [
   {
     id: 'n_1',
-    date: 'Jan 01, 2026',
-    title: 'PolyStudy 3.0 Released',
-    content: 'We have updated the platform with new AI Tutor capabilities powered by Gemini 2.5, darker dark mode, and improved performance.',
+    date: 'Feb 18, 2026',
+    title: 'S2-CE LAB PROGRAMS',
+    content: '1 to 38 Lab Programs, without Flowchart (6 to 10 are missing, will update soon.)',
     isNew: true,
-    links: [{ label: 'Share', url: '#' }]
+    links: [{ label: 'Open 1st PDF', url: 'https://drive.google.com/file/d/1ypT9AU83SlqskafLLKH9IH16HQJRd-Xm/view?usp=drivesdk' }]
+    links: [{ label: 'Open 2nd PDF', url: 'https://drive.google.com/file/d/1LFoHmoH8RRPIx-0-3tHrDNPfpnEmn4RX/view?usp=drivesdk' }]
   },
   {
     id: 'n_2',
+    date: 'Jan 01, 2026',
+    title: 'PolyStudy 3.0 Released',
+    content: 'We have updated the platform with new AI Tutor capabilities powered by Gemini 2.5, darker dark mode, and improved performance.',
+    links: [{ label: 'Share', url: '#' }]
+  },
+  {
+    id: 'n_3',
     date: 'Jan 25, 2026',
     title: 'Semester 1 Results Published',
     content: 'The results for the recent odd semester diploma examinations have been published by the board. Check your results now.',
-    isNew: true,
     links: [{ label: 'Check Result', url: 'https://www.sbte.kerala.gov.in/login' }]
   }, 
   {
-    id: 'n_3',
+    id: 'n_4',
     date: 'Jan 28, 2026',
     title: 'New Study Materials Added',
     content: 'Added comprehensive notes and previous year question papers for Computer Engineering Semester 4 and 6.',
-    isNew: true,
   }
 ];
 
