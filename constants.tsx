@@ -91,8 +91,7 @@ export const APP_NOTICES: AppNotice[] = [
     title: 'S2-CE LAB PROGRAMS',
     content: '1 to 38 Lab Programs, without Flowchart (6 to 10 are missing, will update soon.)',
     isNew: true,
-    links: [{ label: 'Open 1st PDF', url: 'https://drive.google.com/file/d/1ypT9AU83SlqskafLLKH9IH16HQJRd-Xm/view?usp=drivesdk' }]
-    links: [{ label: 'Open 2nd PDF', url: 'https://drive.google.com/file/d/1LFoHmoH8RRPIx-0-3tHrDNPfpnEmn4RX/view?usp=drivesdk' }]
+    links: [{ label: 'Open 1st PDF', url: 'https://drive.google.com/file/d/1ypT9AU83SlqskafLLKH9IH16HQJRd-Xm/view?usp=drivesdk', label: 'Open 2nd PDF', url: 'https://drive.google.com/file/d/1LFoHmoH8RRPIx-0-3tHrDNPfpnEmn4RX/view?usp=drivesdk'}]
   },
   {
     id: 'n_2',
