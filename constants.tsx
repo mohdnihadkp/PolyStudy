@@ -89,8 +89,7 @@ export const APP_NOTICES: AppNotice[] = [
     id: 'n_1',
     date: 'Mar 28, 2026',
     title: 'S2-CE Environmental Science',
-    content: 'Environmental Science CO4-(Explain solid Waste Management, ISO 14000 & Environmental 
-Management.)',
+    content: 'Environmental Science CO4-(Explain solid Waste Management, ISO 14000 & Environmental Management.)',
     isNew: true,
     links: [{ label: 'Open', url: 'https://drive.google.com/file/d/1Pfpw8szP-tqgNwTskskghjXcpgLaJ5aN/view?usp=sharing'}]
   },
