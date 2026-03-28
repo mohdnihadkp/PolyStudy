@@ -88,10 +88,10 @@ export const APP_NOTICES: AppNotice[] = [
   {
     id: 'n_1',
     date: 'Feb 18, 2026',
-    title: 'S2-CE LAB PROGRAMS',
-    content: '1 to 38 Lab Programs, without Flowchart (6 to 10 are missing, will update soon.)',
+    title: 'S2-CE Environmental Science',
+    content: 'CO4-Notes',
     isNew: true,
-    links: [{ label: 'Open', url: 'https://drive.google.com/drive/folders/1fF9ZseUpRw2sr4VRBY3kqlLacndfa_ba'}]
+    links: [{ label: 'Open', url: 'https://drive.google.com/file/d/1Pfpw8szP-tqgNwTskskghjXcpgLaJ5aN/view?usp=sharing'}]
   },
   {
     id: 'n_2',
