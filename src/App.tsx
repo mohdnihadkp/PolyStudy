@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import HexagonBackground from './components/HexagonBackground';
-import Home from './pages/Home';
-import CourseView from './pages/CourseView';
-import ScholarshipPage from './pages/ScholarshipPage';
 import AdBanner from './components/AdBanner';
+
+// Lazy-loaded pages for better LCP & INP
+const Home = lazy(() => import('./pages/Home'));
+const CourseView = lazy(() => import('./pages/CourseView'));
+const ScholarshipPage = lazy(() => import('./pages/ScholarshipPage'));
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -42,26 +44,28 @@ export default function App() {
         <HexagonBackground isDarkMode={isDarkMode} />
         
         {/* Top Responsive Ad Banner */}
-        <div className="w-full z-40 bg-white/5 backdrop-blur-sm border-b border-white/5 py-1">
+        <div className="w-full z-40 bg-white/5 backdrop-blur-sm border-b border-white/5 py-1 min-h-[90px] flex items-center justify-center">
             <AdBanner format="leaderboard" />
         </div>
 
-        <Routes>
-          {/* Homepage: Department Selection */}
-          <Route path="/" element={<Home isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
-          
-          {/* Static Route: Scholarships */}
-          <Route path="/scholarship" element={<ScholarshipPage isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
-          
-          {/* Dynamic Routes: Department -> Semester -> Subject */}
-          {/* Matches: /ce, /ce/Semester%201, /ce/Semester%201/maths101 */}
-          <Route path="/:deptId" element={<CourseView isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
-          <Route path="/:deptId/:semId" element={<CourseView isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
-          <Route path="/:deptId/:semId/:subId" element={<CourseView isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center min-h-[50vh]"><div className="animate-pulse flex flex-col items-center"><div className="h-12 w-12 border-4 border-poly-500 border-t-transparent rounded-full animate-spin"></div><p className="mt-4 text-poly-800 dark:text-poly-200 font-medium">Loading content...</p></div></div>}>
+          <Routes>
+            {/* Homepage: Department Selection */}
+            <Route path="/" element={<Home isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
+            
+            {/* Static Route: Scholarships */}
+            <Route path="/scholarship" element={<ScholarshipPage isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
+            
+            {/* Dynamic Routes: Department -> Semester -> Subject */}
+            {/* Matches: /ce, /ce/Semester%201, /ce/Semester%201/maths101 */}
+            <Route path="/:deptId" element={<CourseView isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
+            <Route path="/:deptId/:semId" element={<CourseView isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
+            <Route path="/:deptId/:semId/:subId" element={<CourseView isDarkMode={isDarkMode} toggleTheme={toggleTheme} />} />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
 
       </div>
     </BrowserRouter>
