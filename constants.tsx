@@ -87,11 +87,11 @@ export const SCHOLARSHIPS: ScholarshipPost[] = [
 export const APP_NOTICES: AppNotice[] = [
   {
     id: 'n_1',
-    date: 'Mar 28, 2026',
-    title: 'S2-CE Environmental Science',
-    content: 'Environmental Science CO4-(Explain solid Waste Management, ISO 14000 & Environmental Management.)',
+    date: 'Apr 20, 2026',
+    title: 'Best Offer Click Now',
+    content: 'I am planning to sell my website polystudy. If anyone is interested in buying it, please contact me.',
     isNew: true,
-    links: [{ label: 'Open', url: 'https://docs.google.com/document/d/1jTa04uq83LrJBgBAx3mHl-SDMFvglJYcULwLcvoLKIM/edit?usp=drivesdk'}]
+    links: [{ label: 'Contact', url: 'https://wa.link/uig8p8'}]
   },
   {
     id: 'n_2',
