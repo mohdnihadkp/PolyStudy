@@ -1,3 +1,17 @@
 User-agent: *
 Allow: /
+Disallow: /*?search=
+
+# Proactively guide AI bots to crawl your structured data
+User-agent: CCBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+
 Sitemap: https://polystudy.vercel.app/sitemap.xml
