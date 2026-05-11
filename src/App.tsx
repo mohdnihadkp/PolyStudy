@@ -3,6 +3,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import HexagonBackground from './components/HexagonBackground';
 import AdBanner from './components/AdBanner';
+import SalePopup from './components/SalePopup';
 
 // Lazy-loaded pages for better LCP & INP
 const Home = lazy(() => import('./pages/Home'));
@@ -41,6 +42,7 @@ export default function App() {
     <BrowserRouter>
       <ScrollToTop />
       <div className="relative min-h-screen flex flex-col font-sans text-slate-900 dark:text-neutral-200 antialiased selection:bg-sky-500/30 selection:text-sky-200">
+        <SalePopup />
         <HexagonBackground isDarkMode={isDarkMode} />
         
         {/* Top Responsive Ad Banner */}
