@@ -59,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({ onNoticesClick }) => {
                         <a href="https://www.linkedin.com/in/mohammed-nihad-kp-71b6b6339?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors" title="LinkedIn">
                             <Linkedin className="w-5 h-5" />
                         </a>
-                        <a href="https://mohdnihadkp.netlify.app" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors" title="Portfolio">
+                        <a href="https://mohdnihadkp.vercel.app" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors" title="Portfolio">
                             <Globe className="w-5 h-5" />
                         </a>
                         <a href="https://github.com/mohdnihadkp" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors" title="GitHub">
