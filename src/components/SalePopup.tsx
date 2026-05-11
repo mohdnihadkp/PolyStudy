@@ -2,8 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { X, Info, Phone } from 'lucide-react';
 
 export default function SalePopup() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [timeLeft, setTimeLeft] = useState(5);
+
+  // Check if it's the user's first time in this session
+  useEffect(() => {
+    const hasSeen = sessionStorage.getItem('salePopupSeen');
+    if (!hasSeen) {
+      setIsVisible(true);
+    }
+  }, []);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    sessionStorage.setItem('salePopupSeen', 'true');
+  };
 
   useEffect(() => {
     if (!isVisible) return;
@@ -14,6 +27,7 @@ export default function SalePopup() {
         if (prev <= 1) {
           clearInterval(timer);
           setIsVisible(false);
+          sessionStorage.setItem('salePopupSeen', 'true');
           return 0;
         }
         return prev - 1;
@@ -36,7 +50,7 @@ export default function SalePopup() {
         />
         
         <button 
-          onClick={() => setIsVisible(false)}
+          onClick={handleClose}
           className="absolute top-3 right-3 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           aria-label="Close popup"
         >
